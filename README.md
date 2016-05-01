@@ -5,7 +5,8 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 ## Libraries
 - `console.ptrs`: `print(...)` and `println(...)` much like javascript's console.log
 - `json.ptrs`: `json_encode(val)` much like php's `json_encode` or javascript's `JSON.stringify`
-- `network.ptrs`: ```C
+- `network.ptrs`:
+```C
 struct Socket
 {
 	connect(host, port);
@@ -19,7 +20,9 @@ struct Socket
 	read(buff, max, end);
 }
 ```
-- `rcon.ptrs`: ```C
+
+- `rcon.ptrs`:
+```C
 struct Rcon
 {
 	error;
