@@ -1,0 +1,64 @@
+import "memcpy", "memset", "strlen", "strdup", "strcpy", "free";
+import "Socket" from "network.ptrs";
+
+struct Rcon
+{
+	socket;
+	nextId;
+	error;
+	constructor(ip, port, password)
+	{
+		this.nextId = 1;
+		this.socket = new Socket();
+		this.socket.connect(ip, port);
+
+		var resp = this.sendPackage(3, password);
+		if(resp == NULL)
+			this.error = "Invalid password";
+		else
+			free(resp);
+	}
+	command(cmd)
+	{
+		return this.sendPackage(2, cmd);
+	}
+	end()
+	{
+		this.socket.disconnect();
+		free(this.socket);
+		free(this);
+	}
+	sendPackage(type, payload)
+	{
+		var len = strlen(payload) + 10;
+		var fullLen = len + 4;
+		var buff[fullLen];
+		buff = (native)buff;
+
+		memcpy(buff, &len, 4); //lets just hope our cpu uses little endian
+		memcpy(buff + 4, &(this.nextId), 4);
+		memcpy(buff + 8, &type, 4);
+		strcpy(buff + 12, payload);
+		memset(buff + fullLen - 2, 0, 2);
+
+		this.nextId++;
+		this.error = this.socket.send(buff, fullLen);
+		if(this.error)
+			return;
+
+		var responseLen = 0;
+		this.error = this.socket.recv(&responseLen, 4);
+		if(this.error)
+			return;
+
+		var responseBuff[responseLen];
+		this.error = this.socket.recv(responseBuff, responseLen);
+		if(this.error)
+			return;
+
+		var id = 0;
+		memcpy(&id, responseBuff, 4);
+		if(id != -1)
+			return strdup(responseBuff + 8);
+	}
+};

@@ -1,0 +1,37 @@
+import "printf", "ptrs_vartoa";
+
+function print()
+{
+	vprint(arguments);
+}
+
+function println()
+{
+	vprint(arguments);
+	printf("\n");
+}
+
+function vprint(_args)
+{
+	var args = _args;
+	while(*args != null)
+	{
+		if(args != _args)
+			printf(" ");
+
+		var type = typeof *args;
+
+		if(type == "undefined")
+			printf("undefined");
+		else if(type == "int")
+			printf("%ld", *args);
+		else if(type == "float")
+			printf("%g", *args);
+		else if(type == "string")
+			printf("%s", *args);
+		else
+			printf("%s:%p", typeof *args, *args);
+
+		args++;
+	}
+}

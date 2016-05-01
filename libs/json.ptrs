@@ -1,0 +1,73 @@
+import "printf", "malloc", "free", "memset", "strtod",
+	"strncmp", "strlen", "strdup", "sprintf", "asprintf";
+
+function json_encode(val, callback, indent)
+{
+	function escapeString(str)
+	{
+		var ptr = "";
+		//TODO special char escaping
+		asprintf(&ptr, "\"%s\"", str);
+		return ptr;
+	}
+
+	if(callback)
+		val = callback(val) || val;
+	indent = indent || 0;
+
+	if(typeof val == "string")
+	{
+		return escapeString(val);
+	}
+
+	if(typeof val == "struct")
+	{
+		var count = 0;
+		for(var key in val)
+			count++;
+
+		if(count == 0)
+			return strdup("{}");
+
+		var strings[VARSIZE * count];
+		var len = 2;
+
+		var i = 0;
+		for(var key in val)
+		{
+			//fooasfsaf * sfgsgas;
+			strings[i] = json_encode(val[key], callback, indent);
+			len += strlen(key) + strlen(strings[i]) + 1;
+			i++;
+		}
+
+		var ptr = malloc(len);
+		var curr = ptr;
+		i = 0;
+		memset(curr, '{', 1);
+		curr++;
+
+		for(var key in val)
+		{
+			curr += sprintf(curr, "\"%s\":%s,", key, strings[i]);
+			free(strings[i]);
+			i++;
+		}
+
+		memset(curr, 0, 1);
+		memset(curr - 1, '}', 1);
+		return (string)ptr;
+	}
+
+	var ptr = "";
+	if(typeof val == "undefined")
+		asprintf(&ptr, "null", val);
+	else if(typeof val == "int")
+		asprintf(&ptr, "%ld", val);
+	else if(typeof val == "float")
+		asprintf(&ptr, "%g", val);
+	else
+		asprintf(&ptr, "\"%s:%p\"", typeof val, val);
+
+	return ptr;
+}

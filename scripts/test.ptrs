@@ -1,0 +1,60 @@
+import "free", "memset", "exit";
+import "json_encode" from "../libs/json.ptrs";
+import "println" from "../libs/console.ptrs";
+import "Socket" from "../libs/network.ptrs";
+
+
+
+println(42);
+println(3.14159);
+println("Hello world");
+println(Socket);
+println(println);
+println();
+
+
+
+function networkTest()
+{
+	var error;
+	var sock = new Socket();
+
+	if(error = sock.connect("m4gnus.de", 3112))
+		return error;
+
+	if(error = sock.sends("Hello World\n"))
+		return error;
+
+	var buff[64];
+	memset(buff, 0, 64);
+
+	if(error = sock.read(buff, 63, '\n'))
+		return error;
+
+	println((string)buff);
+}
+var err = networkTest();
+if(err)
+	println("Network test failed:", err);
+println();
+
+
+
+struct Test
+{
+	foo;
+	bar;
+	somekey;
+	someFunction()
+	{
+		return 42;
+	}
+};
+
+var instance = new Test();
+instance.foo = 1337;
+instance.bar = 3.14159;
+instance.somekey = "Hello World!";
+
+println(json_encode(instance));
+free(instance);

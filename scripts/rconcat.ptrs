@@ -1,0 +1,32 @@
+import "printf", "fgets", "stdin", "atoi", "exit", "memcpy", "free", "getpass";
+import "Rcon" from "../libs/rcon.ptrs";
+memcpy(&stdin, stdin, 8);
+
+var port = atoi(arguments[3]);
+printf("connecting to %s:%d\n", arguments[2], port);
+var pass = getpass("Password: ");
+var rcon = new Rcon(arguments[2], port, pass);
+
+if(rcon.error)
+{
+	printf("Error connecting to server: %s\n", rcon.error);
+	exit(1);
+}
+
+var buff[1024];
+while(true)
+{
+	printf("> ");
+	fgets(buff, 1024, stdin);
+
+	var resp = rcon.command(buff);
+
+	if(rcon.error)
+	{
+		printf("Rcon error: %s\n", rcon.error);
+		exit(1);
+	}
+
+	printf("< %s\n", resp);
+	free(resp);
+}
