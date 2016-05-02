@@ -14,29 +14,23 @@ println();
 
 
 
-function networkTest()
+try
 {
-	var error;
 	var sock = new Socket();
-
-	if(error = sock.connect("m4gnus.de", 3112))
-		return error;
-
-	if(error = sock.sends("Hello World\n"))
-		return error;
+	sock.connect("m4gnus.de", 3112);
+	sock.sends("Hello World\n");
 
 	var buff[64];
 	memset(buff, 0, 64);
-
-	if(error = sock.read(buff, 63, '\n'))
-		return error;
-
+	sock.read(buff, 63, '\n');
 	println((string)buff);
+	println();
 }
-var err = networkTest();
-if(err)
-	println("Network test failed:", err);
-println();
+catch(err, stack)
+{
+	println("Network library test failed:", err);
+	println(stack);
+}
 
 
 

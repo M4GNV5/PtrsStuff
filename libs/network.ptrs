@@ -16,7 +16,7 @@ struct Socket
 	connect(domain, port)
 	{
 		if(this.connected)
-			return "Already connected";
+			throw "Already connected";
 
 		this.ip = malloc(64);
 		SDLNet_ResolveHost(this.ip, domain, port);
@@ -24,14 +24,14 @@ struct Socket
 		this.socket = SDLNet_TCP_Open(this.ip);
 
 		if(this.socket == NULL)
-			return (string)SDL_GetError() || "Could not connect to server";
+			throw (string)SDL_GetError() || "Could not connect to server";
 
 		this.connected = true;
 	}
 	disconnect()
 	{
 		if(!this.connected)
-			return "Not connected";
+			throw "Not connected";
 
 		SDLNet_TCP_Close(this.socket);
 		free(this.ip);
@@ -41,37 +41,37 @@ struct Socket
 	send(buff, len)
 	{
 		if(!this.connected)
-			return "Not connected";
+			throw "Not connected";
 
 		buff = buff || NULL;
 		len = len || -1;
 
 		var result = SDLNet_TCP_Send(this.socket, buff, len);
 		if(result < len)
-			return (string)SDL_GetError() || "Unknown SDLNet error";
+			throw (string)SDL_GetError() || "Unknown SDLNet error";
 	}
 	sends(str)
 	{
-		return this.send(str, strlen(str));
+		this.send(str, strlen(str));
 	}
 	sendc(val)
 	{
 		var buff[1];
 		memset(buff, val, 1);
-		return this.send(buff, 1);
+		this.send(buff, 1);
 	}
 
 	recv(buff, len)
 	{
 		if(!this.connected)
-			return "Not connected";
+			throw "Not connected";
 
 		buff = buff || NULL;
 		len = len || -1;
 
 		var result = SDLNet_TCP_Recv(this.socket, buff, len);
 		if(result <= 0)
-			return (string)SDL_GetError() || "Unknown SDLNet error";
+			throw (string)SDL_GetError() || "Unknown SDLNet error";
 	}
 	read(buff, max, end)
 	{
@@ -82,9 +82,7 @@ struct Socket
 
 		while(*curr != end && pos < max)
 		{
-			if(err = this.recv(curr, 1))
-				return err;
-
+			this.recv(curr, 1);
 			memset(buff + pos, *curr, 1);
 			pos++;
 		}
