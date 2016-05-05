@@ -11,8 +11,6 @@ var nicks[len];
 memset(clients, 0, len);
 memset(nicks, 0, len);
 
-printf("%s\n", typeof clients);
-
 function removeClient(index)
 {
 	if(clients[index])
@@ -33,7 +31,7 @@ function broadcast(nick, splitter, msg)
 {
 	var buff[512];
 
-	var len = sprintf(buff, "%-10s %c %s\n", nick, splitter, msg);
+	var len = sprintf(buff, "%-10.10s %c %s\n", nick, splitter, msg);
 	printf("%s", buff);
 
 	for(var i = 0; i < maxClients; i++)
@@ -67,6 +65,22 @@ while(true)
 					buff[count - 1] = 0;
 					var splitter = ':';
 
+					var spaceOnly = true;
+					for(var j = 0; j < count - 1; j++)
+					{
+						if(buff[j] != ' ')
+							spaceOnly = false;
+
+						if(buff[j] < 32 || buff[j] > 126)
+						{
+							strcpy(buff, "me=idiot");
+							break;
+						}
+					}
+
+					if(spaceOnly)
+						continue;
+
 					if(!nicks[i])
 					{
 						nicks[i] = (string)strdup(buff);
@@ -89,5 +103,5 @@ while(true)
 				clients[i].sends("Welcome to this simple chat written in PointerScript\nYou can read the source at https://github.com/M4GNV5/PtrsStuff/blob/master/scripts/ncchat.ptrs\nType your nickname: ");
 		}
 	}
-	usleep(10000);
+	usleep(100000);
 }
