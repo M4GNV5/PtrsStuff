@@ -12,6 +12,8 @@ struct Socket
 	connect(host, port);
 	disconnect();
 
+	available();
+
 	send(buff, len);
 	sends(string);
 	sendc(byte);

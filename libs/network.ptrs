@@ -1,19 +1,22 @@
-import "malloc", "free", "memset", "strlen";
+import "malloc", "free", "memset", "strlen", "printf";
 import "SDLNet_ResolveHost", "SDLNet_TCP_Open", "SDLNet_TCP_Close",
- 	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError" from "libSDL_net-1.2.so.0";
+ 	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError",
+	"SDLNet_AllocSocketSet", "SDLNet_FreeSocketSet", "SDLNet_AddSocket", "SDLNet_CheckSockets" from "libSDL_net-1.2.so.0";
 
 struct Socket
 {
 	ip;
 	socket;
+	socketset;
 	connected;
 	constructor()
 	{
 		this.connected = false;
 		this.socket = NULL;
+		this.socketset = NULL;
 	}
 
-	connect(domain, port)
+	connect(domain, port, createSet)
 	{
 		if(this.connected)
 			throw "Already connected";
@@ -27,6 +30,15 @@ struct Socket
 			throw (string)SDL_GetError() || "Could not connect to server";
 
 		this.connected = true;
+
+		if(createSet || typeof createSet == "undefined")
+		{
+			this.socketset = SDLNet_AllocSocketSet(1);
+			if(this.socketset == NULL)
+				throw (string)SDL_GetError() || "Could not create SocketSet";
+			if(SDLNet_AddSocket(this.socketset, this.socket) == -1)
+				throw (string)SDL_GetError() || "Could not create SocketSet";
+		}
 	}
 	disconnect()
 	{
@@ -36,6 +48,18 @@ struct Socket
 		SDLNet_TCP_Close(this.socket);
 		free(this.ip);
 		this.connected = false;
+
+		if(this.socketset)
+			SDLNet_FreeSocketSet(this.socketset);
+	}
+
+	available(timeout)
+	{
+		timeout = timeout || 0;
+		var ready = SDLNet_CheckSockets(this.socketset, timeout);
+		if(ready < 0)
+			throw (string)SDL_GetError() || "Could not check availability";
+		return ready > 0;
 	}
 
 	send(buff, len)
