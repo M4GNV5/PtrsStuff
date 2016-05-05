@@ -1,7 +1,8 @@
-import "malloc", "free", "memset", "strlen", "usleep";
+import "malloc", "free", "memset", "strlen", "sprintf", "usleep";
 import "SDLNet_ResolveHost", "SDLNet_TCP_GetPeerAddress", "SDLNet_TCP_Open", "SDLNet_TCP_Close",
  	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError", "SDLNet_TCP_Accept",
-	"SDLNet_AllocSocketSet", "SDLNet_FreeSocketSet", "SDLNet_AddSocket", "SDLNet_CheckSockets" from "libSDL_net-1.2.so.0";
+	"SDLNet_AllocSocketSet", "SDLNet_FreeSocketSet", "SDLNet_AddSocket", "SDLNet_CheckSockets",
+	"SDLNet_Read32", "SDLNet_Read16" from "libSDL_net-1.2.so.0";
 
 struct Socket
 {
@@ -48,6 +49,31 @@ struct Socket
 
 		if(this.socketset)
 			SDLNet_FreeSocketSet(this.socketset);
+	}
+
+	getIp(buff, includePort)
+	{
+		if(!this.ip)
+			throw "Not connected";
+
+		var val = SDLNet_Read32(this.ip);
+
+		if(buff)
+		{
+			var len = sprintf(buff, "%d.%d.%d.%d",
+				val >> 24 & 0xff,
+				val >> 16 & 0xff,
+				val >> 8 & 0xff,
+				val & 0xff);
+			if(includePort)
+				sprintf(buff + len, ":%d", this.getPort());
+		}
+
+		return val;
+	}
+	getPort()
+	{
+		return SDLNet_Read16(this.ip + 4);
 	}
 
 	createSet()

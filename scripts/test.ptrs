@@ -16,8 +16,12 @@ println();
 
 try
 {
+	var buff[64];
 	var sock = new Socket();
 	sock.connect("m4gnus.de", 3112);
+
+	sock.getIp(buff, true);
+	println("connected to", (string)buff);
 	sock.sends("Hello World\n");
 
 	while(!sock.available(3000))
@@ -25,7 +29,6 @@ try
 		println("Aaaaand we're waiting...");
 	}
 
-	var buff[64];
 	memset(buff, 0, 64);
 	sock.read(buff, 63, '\n');
 	println((string)buff);
