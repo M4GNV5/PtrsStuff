@@ -1,0 +1,93 @@
+var port = 3112;
+var maxClients = 16;
+
+import "usleep", "memset", "strdup", "strcpy", "sprintf", "printf", "free";
+import "SocketServer" from "../libs/network.ptrs";
+
+var server = new SocketServer(port);
+var len = VARSIZE * maxClients;
+var clients[len];
+var nicks[len];
+memset(clients, 0, len);
+memset(nicks, 0, len);
+
+printf("%s\n", typeof clients);
+
+function removeClient(index)
+{
+	if(clients[index])
+	{
+		clients[index].disconnect();
+		free(clients[index]);
+		clients[index] = NULL;
+	}
+	if(nicks[index])
+	{
+		broadcast(nicks[index], '-', "left");
+		free(nicks[index]);
+		nicks[index] = NULL;
+	}
+}
+
+function broadcast(nick, splitter, msg)
+{
+	var buff[512];
+
+	var len = sprintf(buff, "%-10s %c %s\n", nick, splitter, msg);
+	printf("%s", buff);
+
+	for(var i = 0; i < maxClients; i++)
+	{
+		try
+		{
+			if(clients[i] && nicks[i])
+				clients[i].send(buff, len);
+		}
+		catch(e)
+		{
+			printf("/!\\ %s\n", e);
+			removeClient(i);
+		}
+	}
+}
+
+while(true)
+{
+	for(var i = 0; i < maxClients; i++)
+	{
+		if(clients[i])
+		{
+			var sock = clients[i];
+			try
+			{
+				if(sock.available())
+				{
+					var buff[256];
+					var count = sock.read(buff, 255, '\n');
+					buff[count - 1] = 0;
+					var splitter = ':';
+
+					if(!nicks[i])
+					{
+						nicks[i] = (string)strdup(buff);
+						strcpy(buff, "joined");
+						splitter = '-';
+					}
+					broadcast(nicks[i], splitter, buff);
+				}
+			}
+			catch(e)
+			{
+				printf("/!\\ %s\n", e);
+				removeClient(i);
+			}
+		}
+		else
+		{
+			clients[i] = server.accept();
+			if(clients[i])
+				clients[i].sends("Welcome to this simple chat written in PointerScript\nYou can read the source at https://github.com/M4GNV5/PtrsStuff/blob/master/scripts/ncchat.ptrs\nType your nickname: ");
+		}
+	}
+	usleep(10000);
+}
