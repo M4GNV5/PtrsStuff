@@ -8,6 +8,7 @@ var server = new SocketServer(port);
 var len = VARSIZE * maxClients;
 var clients[len];
 var nicks[len];
+var antiSpam[len];
 memset(clients, 0, len);
 memset(nicks, 0, len);
 
@@ -55,6 +56,9 @@ while(true)
 	{
 		if(clients[i])
 		{
+			if(antiSpam[i] > 0)
+				antiSpam[i]--;
+
 			var sock = clients[i];
 			try
 			{
@@ -78,7 +82,8 @@ while(true)
 						}
 					}
 
-					if(spaceOnly)
+					antiSpam[i] += 10;
+					if(spaceOnly || antiSpam[i] > 19)
 						continue;
 
 					if(!nicks[i])
@@ -99,6 +104,7 @@ while(true)
 		else
 		{
 			clients[i] = server.accept();
+			antiSpam[i] = 0;
 			if(clients[i])
 				clients[i].sends("Welcome to this simple chat written in PointerScript\nYou can read the source at https://github.com/M4GNV5/PtrsStuff/blob/master/scripts/ncchat.ptrs\nType your nickname: ");
 		}
