@@ -12,7 +12,7 @@ struct Socket
 	connect(host, port);
 	disconnect();
 
-	available();
+	available(timeout);
 
 	send(buff, len);
 	sends(string);
