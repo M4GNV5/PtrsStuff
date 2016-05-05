@@ -1,18 +1,20 @@
-import "malloc", "free", "memset", "strlen", "printf";
-import "SDLNet_ResolveHost", "SDLNet_TCP_Open", "SDLNet_TCP_Close",
- 	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError",
+import "malloc", "free", "memset", "strlen", "usleep";
+import "SDLNet_ResolveHost", "SDLNet_TCP_GetPeerAddress", "SDLNet_TCP_Open", "SDLNet_TCP_Close",
+ 	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError", "SDLNet_TCP_Accept",
 	"SDLNet_AllocSocketSet", "SDLNet_FreeSocketSet", "SDLNet_AddSocket", "SDLNet_CheckSockets" from "libSDL_net-1.2.so.0";
 
 struct Socket
 {
 	ip;
 	socket;
+	isServer;
 	socketset;
 	connected;
 	constructor()
 	{
 		this.connected = false;
 		this.socket = NULL;
+		this.isServer = false;
 		this.socketset = NULL;
 	}
 
@@ -32,13 +34,7 @@ struct Socket
 		this.connected = true;
 
 		if(createSet || typeof createSet == "undefined")
-		{
-			this.socketset = SDLNet_AllocSocketSet(1);
-			if(this.socketset == NULL)
-				throw (string)SDL_GetError() || "Could not create SocketSet";
-			if(SDLNet_AddSocket(this.socketset, this.socket) == -1)
-				throw (string)SDL_GetError() || "Could not create SocketSet";
-		}
+			this.createSet();
 	}
 	disconnect()
 	{
@@ -46,13 +42,22 @@ struct Socket
 			throw "Not connected";
 
 		SDLNet_TCP_Close(this.socket);
-		free(this.ip);
+		if(!this.isServer)
+			free(this.ip);
 		this.connected = false;
 
 		if(this.socketset)
 			SDLNet_FreeSocketSet(this.socketset);
 	}
 
+	createSet()
+	{
+		this.socketset = SDLNet_AllocSocketSet(1);
+		if(this.socketset == NULL)
+			throw (string)SDL_GetError() || "Could not create SocketSet";
+		if(SDLNet_AddSocket(this.socketset, this.socket) == -1)
+			throw (string)SDL_GetError() || "Could not create SocketSet";
+	}
 	available(timeout)
 	{
 		timeout = timeout || 0;
@@ -110,5 +115,58 @@ struct Socket
 			memset(buff + pos, *curr, 1);
 			pos++;
 		}
+		return pos;
+	}
+};
+
+struct SocketServer
+{
+	ip;
+	socket;
+	constructor(port)
+	{
+		this.ip = malloc(64);
+		if(SDLNet_ResolveHost(this.ip, NULL, port) == -1)
+			throw (string)SDL_GetError() || "Could not start listening";
+
+		this.socket = SDLNet_TCP_Open(this.ip);
+
+		if(this.socket == NULL)
+			throw (string)SDL_GetError() || "Could not connect to server";
+	}
+
+	accept(checkInterval, createSet)
+	{
+		checkInterval = checkInterval || 0;
+		while(true)
+		{
+			var rawSock = SDLNet_TCP_Accept(this.socket);
+			if(rawSock != NULL)
+			{
+				var sock = new Socket();
+				sock.socket = rawSock;
+				sock.ip = SDLNet_TCP_GetPeerAddress(rawSock);
+				sock.isServer = true;
+				sock.connected = true;
+				if(createSet || typeof createSet == "undefined")
+					sock.createSet();
+				return sock;
+			}
+
+			if(checkInterval > 0)
+				usleep(checkInterval * 1000);
+			else
+				return undefined;
+		}
+	}
+
+	close()
+	{
+		if(this.socket == NULL)
+			throw "Attempting to close a not opened server";
+
+		SDLNet_TCP_Close(this.socket);
+		free(this.ip);
+		free(this);
 	}
 };
