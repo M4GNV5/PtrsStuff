@@ -106,7 +106,20 @@ while(true)
 			clients[i] = server.accept();
 			antiSpam[i] = 0;
 			if(clients[i])
-				clients[i].sends("Welcome to this simple chat written in PointerScript\nYou can read the source at https://github.com/M4GNV5/PtrsStuff/blob/master/scripts/ncchat.ptrs\nType your nickname: ");
+			{
+				var sock = clients[i];
+				sock.sends("Welcome to this simple chat written in PointerScript\n");
+				sock.sends("You can read the source at http://bit.ly/1XaCDlz\nCurrently online: ");
+				for(var j = 0; j < maxClients; j++)
+				{
+					if(clients[j] && nicks[j])
+					{
+						sock.sends(nicks[j]);
+						sock.sends(", ");
+					}
+				}
+				sock.sends("\nType your nickname: ");
+			}
 		}
 	}
 	usleep(100000);
