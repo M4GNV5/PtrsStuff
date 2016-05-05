@@ -12,6 +12,11 @@ struct Socket
 	connect(host, port);
 	disconnect();
 
+	//returns the integer representation of the ip
+	//writes the string representation of the ip to buff optionally including the port
+	getIp(buff, includePort);
+	getPort();
+
 	available(timeout); //check if data can be read
 
 	send(buff, len);
