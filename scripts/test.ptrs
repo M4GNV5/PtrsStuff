@@ -2,6 +2,7 @@ import "free", "memset", "exit";
 import "json_encode" from "../libs/json.ptrs";
 import "println" from "../libs/console.ptrs";
 import "Socket" from "../libs/network.ptrs";
+import "RegExp" from "../libs/regexp.ptrs";
 
 
 
@@ -18,7 +19,7 @@ try
 {
 	var buff[64];
 	var sock = new Socket();
-	sock.connect("m4gnus.de", 3112);
+	sock.connect("m4gnus.de", 12);
 
 	sock.getIp(buff, true);
 	println("connected to", (string)buff);
@@ -39,6 +40,30 @@ catch(err, stack)
 	println("Network library test failed:", err);
 	println(stack);
 }
+
+
+function dumpMatches(reg, str)
+{
+	var matches = reg.match(str);
+	println("For string", str);
+
+	if(matches == NULL)
+		return println("\tNo Match");
+
+	var orginal = matches;
+	var i = 0;
+	while(*matches != NULL)
+	{
+		println("\tmatch", i++, ":", *matches);
+		matches++;
+	}
+	free(orginal);
+}
+var reg = new RegExp("a?(b+)x{3}", true);
+dumpMatches(reg, "abbxxx");
+dumpMatches(reg, "aaaaaabbbbbxx");
+dumpMatches(reg, "bbaabbbbbxxx");
+println();
 
 
 

@@ -1,0 +1,86 @@
+import "malloc", "free", "strncpy", "memcpy", "regcomp", "regexec", "regerror";
+
+struct RegExp
+{
+	regex;
+	lastMatch;
+
+	constructor(str, ignoreCase, multiLine)
+	{
+		this.regex = malloc(64);
+
+		var flags = 0x001; //REG_EXTENDED
+		if(ignoreCase)
+			flags |= 0x010; //REG_ICASE
+		if(multiLine)
+			flags |= 0x100; //REG_NEWLINE
+
+		var err = regcomp(this.regex, str, flags);
+		if(err)
+		{
+			var buff[128];
+			regerror(err, this.regex, buff, 128);
+			throw buff;
+		}
+	}
+
+	test(str)
+	{
+		return regexec(this.regex, str, 0, NULL, 0) == 0;
+	}
+
+	match(str, maxMatches)
+	{
+		if(typeof maxMatches == "undefined")
+			maxMatches = 16;
+
+		var matches[8 * maxMatches];
+		if(regexec(this.regex, str, maxMatches, matches, 0) != 0)
+			return NULL;
+
+		var starts[VARSIZE * maxMatches];
+		var lengths[VARSIZE * maxMatches];
+
+		var actualMatches = 1;
+		var totalLen = VARSIZE;
+		for(var i = 0; i < maxMatches; i++)
+		{
+			var start = 0;
+			memcpy(&start, matches + 8 * i, 8);
+			var end = start >> 32;
+			start &= 0xffffffff;
+			if(start < 0 || end < 0)
+				break;
+
+			actualMatches++;
+			var len = end - start;
+			starts[i] = start;
+			lengths[i] = len;
+			totalLen += VARSIZE + len + 1;
+		}
+
+		var buff = malloc(totalLen);
+		var buffptr = (pointer)buff;
+		buff += actualMatches * VARSIZE;
+
+		for(var i = 0; i < actualMatches - 1; i++)
+		{
+			buffptr[i] = (string)buff;
+			strncpy(buff, str + starts[i], lengths[i]);
+			buff += lengths[i];
+			buff = (native)buff;
+			*buff = 0;
+			buff++;
+		}
+		buffptr[actualMatches - 1] = NULL;
+
+		return buffptr;
+	}
+
+	free()
+	{
+		regfree(this.regex);
+		free(this.regex);
+		free(this);
+	}
+};
