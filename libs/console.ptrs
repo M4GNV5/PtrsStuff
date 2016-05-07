@@ -14,7 +14,7 @@ function println()
 function vprint(_args)
 {
 	var args = _args;
-	while(*args != null)
+	while(*args != null || typeof *args != "native")
 	{
 		if(args != _args)
 			printf(" ");
