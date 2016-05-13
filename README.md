@@ -42,6 +42,21 @@ struct SocketServer
 }
 ```
 
+- `regexp.ptrs`:
+```C
+struct RegExp
+{
+	constructor(str, ignoreCase, multiLine); //compile regexp string str
+	free(); //free the regex and the struct self
+	test(str); //test if the regexp matches the specified string
+
+	//much like javascript's String.prototype.match
+	//returns an allocated array (or NULL for no matches) that should be freed
+	//maxMatches default value is 16
+	match(str, maxMatches);
+}
+```
+
 - `rcon.ptrs`:
 ```C
 struct Rcon
