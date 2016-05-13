@@ -2,9 +2,30 @@
 
 Various scripts and libraries written in [PointerScript](https://github.com/M4GNV5/PointerScript)
 
+## Scripts
+- `ncchat.ptrs`: Chat server you can connect to using netcat
+- `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
+- `test.ptrs`: small test script for console, json and network libraries
+
 ## Libraries
 - `console.ptrs`: `print(...)` and `println(...)` much like javascript's console.log
 - `json.ptrs`: `json_encode(val)` much like php's `json_encode` or javascript's `JSON.stringify`
+
+- `regexp.ptrs`:
+```C
+struct RegExp
+{
+	constructor(str, ignoreCase, multiLine); //compile regexp string str
+	free(); //free the regex and the struct self
+	test(str); //test if the regexp matches the specified string
+
+	//much like javascript's String.prototype.match
+	//returns an allocated array (or NULL for no matches) that should be freed
+	//maxMatches default value is 16
+	match(str, maxMatches);
+}
+```
+
 - `network.ptrs`:
 ```C
 struct Socket
@@ -46,21 +67,6 @@ struct SocketServer
 }
 ```
 
-- `regexp.ptrs`:
-```C
-struct RegExp
-{
-	constructor(str, ignoreCase, multiLine); //compile regexp string str
-	free(); //free the regex and the struct self
-	test(str); //test if the regexp matches the specified string
-
-	//much like javascript's String.prototype.match
-	//returns an allocated array (or NULL for no matches) that should be freed
-	//maxMatches default value is 16
-	match(str, maxMatches);
-}
-```
-
 - `rcon.ptrs`:
 ```C
 struct Rcon
@@ -71,8 +77,3 @@ struct Rcon
 	end();
 }
 ```
-
-## Scripts
-- `ncchat.ptrs`: Chat server you can connect to using netcat
-- `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
-- `test.ptrs`: small test script for console, json and network libraries
