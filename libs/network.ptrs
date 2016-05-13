@@ -143,6 +143,18 @@ struct Socket
 		}
 		return pos;
 	}
+	readAvailable(buff, max)
+	{
+		var pos = 0;
+		var curr[1];
+		while(this.available() && pos < max)
+		{
+			this.recv(curr, 1);
+			buff[pos] = *curr;
+			pos++;
+		}
+		return pos;
+	}
 };
 
 struct SocketServer

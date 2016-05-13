@@ -28,6 +28,10 @@ struct Socket
 	//read bytes into buff until 'end' byte is read or 'max' bytes were read
 	//returns count of bytes read
 	read(buff, max, end);
+
+	//read bytes into buff until no data is available or max bytes were read
+	//returns count of bytes read
+	readAvailable(buff, max);
 }
 
 struct SocketServer

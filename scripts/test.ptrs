@@ -1,4 +1,4 @@
-import "free", "memset", "exit";
+import "free", "memset", "exit", "sleep";
 import "json_encode" from "../libs/json.ptrs";
 import "println" from "../libs/console.ptrs";
 import "Socket" from "../libs/network.ptrs";
@@ -17,9 +17,9 @@ println();
 
 try
 {
-	var buff[64];
+	var buff[256];
 	var sock = new Socket();
-	sock.connect("m4gnus.de", 12);
+	sock.connect("m4gnus.de", 3112);
 
 	sock.getIp(buff, true);
 	println("connected to", (string)buff);
@@ -29,9 +29,10 @@ try
 	{
 		println("Aaaaand we're waiting...");
 	}
+	sleep(1);
 
-	memset(buff, 0, 64);
-	sock.read(buff, 63, '\n');
+	memset(buff, 0, 256);
+	sock.readAvailable(buff, 255);
 	println((string)buff);
 	println();
 }
