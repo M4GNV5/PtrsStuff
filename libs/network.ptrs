@@ -1,4 +1,4 @@
-import "malloc", "free", "memset", "strlen", "sprintf", "usleep";
+import "malloc", "free", "strlen", "sprintf", "usleep";
 import "SDLNet_ResolveHost", "SDLNet_TCP_GetPeerAddress", "SDLNet_TCP_Open", "SDLNet_TCP_Close",
  	"SDLNet_TCP_Send", "SDLNet_TCP_Recv", "SDL_GetError", "SDLNet_TCP_Accept",
 	"SDLNet_AllocSocketSet", "SDLNet_FreeSocketSet", "SDLNet_AddSocket", "SDLNet_CheckSockets",
@@ -112,7 +112,7 @@ struct Socket
 	sendc(val)
 	{
 		var buff[1];
-		memset(buff, val, 1);
+		*buff = val;
 		this.send(buff, 1);
 	}
 
@@ -130,15 +130,17 @@ struct Socket
 	}
 	read(buff, max, end)
 	{
-		var pos = 0;
+		var pos = 1;
 		var err;
 		var curr[1];
-		memset(curr, 0, 1);
+
+		this.recv(curr, 1);
+		buff[0] = *curr;
 
 		while(*curr != end && pos < max)
 		{
 			this.recv(curr, 1);
-			memset(buff + pos, *curr, 1);
+			buff[pos] = *curr;
 			pos++;
 		}
 		return pos;
