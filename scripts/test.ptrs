@@ -22,7 +22,7 @@ try
 	sock.connect("m4gnus.de", 3112);
 
 	sock.getIp(buff, true);
-	println("connected to", (string)buff);
+	println("connected to", buff);
 	sock.sends("Hello World\n");
 
 	while(!sock.available(3000))
@@ -33,7 +33,7 @@ try
 
 	memset(buff, 0, 256);
 	sock.readAvailable(buff, 255);
-	println((string)buff);
+	println(buff);
 	println();
 }
 catch(err, stack)

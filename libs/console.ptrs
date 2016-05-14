@@ -14,20 +14,19 @@ function println()
 function vprint(_args)
 {
 	var args = _args;
-	while(*args != null || typeof *args != "native")
+	while(*args != null || typeidof *args != native)
 	{
 		if(args != _args)
 			printf(" ");
 
-		var type = typeof *args;
-
-		if(type == "undefined")
+		var type = typeidof *args;
+		if(type == undefined)
 			printf("undefined");
-		else if(type == "int")
+		else if(type == int)
 			printf("%ld", *args);
-		else if(type == "float")
+		else if(type == float)
 			printf("%g", *args);
-		else if(type == "string")
+		else if(type == native)
 			printf("%s", *args);
 		else
 			printf("%s:%p", typeof *args, *args);

@@ -15,12 +15,12 @@ function json_encode(val, callback, indent)
 		val = callback(val) || val;
 	indent = indent || 0;
 
-	if(typeof val == "string")
+	if(typeidof val == native)
 	{
 		return escapeString(val);
 	}
 
-	if(typeof val == "struct")
+	if(typeidof val == struct)
 	{
 		var count = 0;
 		for(var key in val)
@@ -56,15 +56,15 @@ function json_encode(val, callback, indent)
 
 		memset(curr, 0, 1);
 		memset(curr - 1, '}', 1);
-		return (string)ptr;
+		return (native)ptr;
 	}
 
 	var ptr = "";
-	if(typeof val == "undefined")
+	if(typeidof val == undefined)
 		asprintf(&ptr, "null", val);
-	else if(typeof val == "int")
+	else if(typeidof val == int)
 		asprintf(&ptr, "%ld", val);
-	else if(typeof val == "float")
+	else if(typeidof val == float)
 		asprintf(&ptr, "%g", val);
 	else
 		asprintf(&ptr, "\"%s:%p\"", typeof val, val);
