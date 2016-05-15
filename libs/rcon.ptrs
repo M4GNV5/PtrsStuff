@@ -28,16 +28,16 @@ struct Rcon
 		free(this.socket);
 		free(this);
 	}
-	sendPackage(type, payload)
+	sendPackage(pkgType, payload)
 	{
 		var len = strlen(payload) + 10;
 		var fullLen = len + 4;
 		var buff[fullLen];
-		buff = (native)buff;
+		buff = cast<native>buff;
 
 		memcpy(buff, &len, 4); //lets just hope our cpu uses little endian
 		memcpy(buff + 4, &(this.nextId), 4);
-		memcpy(buff + 8, &type, 4);
+		memcpy(buff + 8, &pkgType, 4);
 		strcpy(buff + 12, payload);
 		memset(buff + fullLen - 2, 0, 2);
 

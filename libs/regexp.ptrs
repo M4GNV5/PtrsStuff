@@ -31,15 +31,15 @@ struct RegExp
 
 	match(str, maxMatches)
 	{
-		if(typeidof maxMatches == undefined)
+		if(typeof maxMatches == type<undefined>)
 			maxMatches = 16;
 
 		var matches[8 * maxMatches];
 		if(regexec(this.regex, str, maxMatches, matches, 0) != 0)
 			return NULL;
 
-		var starts[VARSIZE * maxMatches];
-		var lengths[VARSIZE * maxMatches];
+		var starts{maxMatches};
+		var lengths{maxMatches};
 
 		var actualMatches = 1;
 		var totalLen = VARSIZE;
@@ -59,13 +59,13 @@ struct RegExp
 			totalLen += VARSIZE + len + 1;
 		}
 
-		var buff = (native)malloc(totalLen);
-		var buffptr = (pointer)buff;
+		var buff = cast<native>malloc(totalLen);
+		var buffptr = cast<pointer>buff;
 		buff += actualMatches * VARSIZE;
 
 		for(var i = 0; i < actualMatches - 1; i++)
 		{
-			buffptr[i] = (native)buff;
+			buffptr[i] = cast<native>buff;
 			strncpy(buff, str + starts[i], lengths[i]);
 			buff += lengths[i];
 			*buff = 0;

@@ -6,9 +6,9 @@ import "SocketServer" from "../libs/network.ptrs";
 
 var server = new SocketServer(port);
 var len = VARSIZE * maxClients;
-var clients[len];
-var nicks[len];
-var antiSpam[len];
+var clients{maxClients};
+var nicks{maxClients};
+var antiSpam{maxClients};
 memset(clients, 0, len);
 memset(nicks, 0, len);
 
@@ -88,7 +88,7 @@ while(true)
 
 					if(!nicks[i])
 					{
-						nicks[i] = (string)strdup(buff);
+						nicks[i] = cast<native>strdup(buff);
 						strcpy(buff, "joined");
 						splitter = '-';
 					}

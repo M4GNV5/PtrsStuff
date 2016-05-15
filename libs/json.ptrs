@@ -1,4 +1,4 @@
-import "printf", "malloc", "free", "memset", "strtod",
+import "printf", "malloc", "free", "memset", "strtod", "ptrs_typetoa",
 	"strncmp", "strlen", "strdup", "sprintf", "asprintf";
 
 function json_encode(val, callback, indent)
@@ -15,12 +15,12 @@ function json_encode(val, callback, indent)
 		val = callback(val) || val;
 	indent = indent || 0;
 
-	if(typeidof val == native)
+	if(typeof val == type<native>)
 	{
 		return escapeString(val);
 	}
 
-	if(typeidof val == struct)
+	if(typeof val == type<struct>)
 	{
 		var count = 0;
 		for(var key in val)
@@ -29,7 +29,7 @@ function json_encode(val, callback, indent)
 		if(count == 0)
 			return strdup("{}");
 
-		var strings[VARSIZE * count];
+		var strings{count};
 		var len = 2;
 
 		var i = 0;
@@ -56,18 +56,18 @@ function json_encode(val, callback, indent)
 
 		memset(curr, 0, 1);
 		memset(curr - 1, '}', 1);
-		return (native)ptr;
+		return cast<native>ptr;
 	}
 
 	var ptr = "";
-	if(typeidof val == undefined)
-		asprintf(&ptr, "null", val);
-	else if(typeidof val == int)
+	if(typeof val == type<undefined>)
+		asprintf(&ptr, "null");
+	else if(typeof val == type<int>)
 		asprintf(&ptr, "%ld", val);
-	else if(typeidof val == float)
+	else if(typeof val == type<float>)
 		asprintf(&ptr, "%g", val);
 	else
-		asprintf(&ptr, "\"%s:%p\"", typeof val, val);
+		asprintf(&ptr, "\"%s:%p\"", ptrs_typetoa(typeof val), val);
 
 	return ptr;
 }
