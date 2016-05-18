@@ -1,0 +1,124 @@
+import "malloc", "free", "strcmp", "snprintf";
+
+struct MapEntry
+{
+	key;
+	value;
+	next = null;
+
+	constructor(key, value = null)
+	{
+		this.key = key;
+		this.value = value;
+	}
+};
+
+function compare(a, b)
+{
+	if(a == b || typeof b != type<float> && cast<int>a == cast<int>b)
+		return true;
+	else if(typeof a == type<native> && typeof b == type<native>)
+		return strcmp(a, b) == 0;
+	return false;
+}
+
+struct Map
+{
+	first = null;
+	length = 0;
+	useThrow;
+
+	constructor(useThrow = true)
+	{
+		this.useThrow = useThrow;
+	}
+
+	has(key)
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(compare(curr.key, key))
+				return true;
+			curr = curr.next;
+		}
+		return false;
+	}
+
+	get(key)
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(compare(curr.key, key))
+				return curr.value;
+			curr = curr.next;
+		}
+
+		if(this.useThrow)
+		{
+			var buff[128];
+			snprintf(buff, 128, "Cannot find key '%s'", key);
+			throw buff;
+		}
+	}
+
+	set(key, val)
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(compare(curr.key, key))
+			{
+				curr.value = val;
+				return;
+			}
+			curr = curr.next;
+		}
+
+		var entry = new MapEntry(key, val);
+		entry.next = this.first;
+		this.first = entry;
+		this.length++;
+	}
+
+	remove(key)
+	{
+		var last = null;
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(compare(key, curr.key))
+			{
+				if(last == null)
+					this.first = curr.next;
+				else
+					last.next = curr.next;
+				free(curr);
+				this.length--;
+				return;
+			}
+			last = curr;
+			curr = curr.next;
+		}
+
+		if(this.useThrow)
+		{
+			var buff[128];
+			snprintf(buff, 128, "Cannot remove non exisiting key '%s'", key);
+			throw buff;
+		}
+	}
+
+	free()
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			var _curr = curr;
+			curr = curr.next;
+			free(_curr);
+		}
+		free(this);
+	}
+};

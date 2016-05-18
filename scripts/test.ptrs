@@ -3,6 +3,7 @@ import "json_encode" from "../libs/json.ptrs";
 import "println" from "../libs/console.ptrs";
 import "Socket" from "../libs/network.ptrs";
 import "RegExp" from "../libs/regexp.ptrs";
+import "Map" from "../libs/map.ptrs";
 
 
 
@@ -65,6 +66,35 @@ dumpMatches(reg, "abbxxx");
 dumpMatches(reg, "aaaaaabbbbbxx");
 dumpMatches(reg, "bbaabbbbbxxx");
 println();
+
+
+
+var map = new Map();
+function tryGet(key)
+{
+	try
+	{
+		println("map[", key, "] =", map.get(key));
+	}
+	catch(err)
+	{
+		println("Map error:", err);
+	}
+}
+map.set("foo", 42);
+tryGet("foo");
+map.set("foo", 1337);
+tryGet("foo");
+map.remove("foo");
+tryGet("foo");
+
+map.set("bar", 31.12);
+map.set(42, map);
+tryGet("bar");
+tryGet(42);
+tryGet("42");
+
+map.free();
 
 
 
