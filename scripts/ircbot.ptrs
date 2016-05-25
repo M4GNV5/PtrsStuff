@@ -1,0 +1,26 @@
+import "printf", "strcmp", "strstr";
+import "IrcClient" from "../libs/irc.ptrs";
+
+var host = "irc.rizon.net";
+//var host = "127.0.0.1";
+var port = 6667;
+var chan = "#botdev";
+var nick = "ptrsbot";
+
+var client = new IrcClient(host, port, nick);
+printf("Connected\n");
+client.join(chan);
+
+var sender[64];
+var channel[32];
+var msg[512];
+while(true)
+{
+	client.receive(sender, channel, msg);
+	printf("%-10s | %-10s : %s\n", sender, channel, msg);
+
+	if(strcmp(msg, "o/") == 0)
+		client.send(channel, "\\o");
+	else if(strstr(msg, nick) != 0)
+		client.send(channel, "Hello! I'm a friendly bot written in PointerScript. Source: http://bit.ly/1sA4O1s");
+}

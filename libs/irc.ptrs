@@ -1,0 +1,74 @@
+import "strncmp", "strchr", "sprintf", "strlen";
+import "Socket" from "./network.ptrs";
+
+struct IrcClient
+{
+	socket;
+
+	constructor(host = "127.0.0.1", port = 6667, nick = "PointerScriptBot", realname = nick)
+	{
+		this.socket = new Socket();
+		this.socket.connect(host, port);
+
+		this.sendRaw("NICK ", nick);
+		this.sendRaw("USER ", nick, " 42 answer :", realname);
+	}
+
+	join(channel)
+	{
+		this.sendRaw("JOIN ", channel);
+	}
+
+	send(receiver, msg)
+	{
+		this.sendRaw("PRIVMSG ", receiver, " :", msg);
+	}
+
+	receive(sender, channel, message)
+	{
+		var buff[513];
+		while(true)
+		{
+			var count = this.socket.read(buff, 512, '\n');
+			buff[count] = 0;
+
+			if(strncmp(buff, "PING", 4) == 0)
+			{
+				this.sendRaw("PONG ", buff + 5);
+			}
+			else if(buff[0] == ':')
+			{
+				var cmd = strchr(buff, ' ') + 1;
+				if(strncmp(cmd, "PRIVMSG", 7) == 0)
+				{
+					var nickend = strchr(buff, '!');
+					var chan = strchr(cmd, ' ') + 1;
+					var msg = strchr(chan, ':') + 1;
+
+					sprintf(sender, "%.*s", nickend - buff - 1, buff + 1);
+					sprintf(channel, "%.*s", msg - chan - 2, chan);
+					sprintf(message, "%.*s", strlen(msg) - 2, msg);
+					return;
+				}
+			}
+		}
+	}
+
+	free()
+	{
+		if(this.socket.connected)
+			this.socket.disconnect();
+		free(this.socket);
+		free(this);
+	}
+
+	sendRaw()
+	{
+		while(*arguments != null)
+		{
+			this.socket.sends(*arguments++);
+		}
+
+		this.socket.sends("\r\n");
+	}
+};
