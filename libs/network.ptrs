@@ -130,6 +130,12 @@ struct Socket
 		if(result <= 0 || result > INT_MAX)
 			throw cast<native>SDL_GetError() || "Unknown SDLNet error";
 	}
+	readc()
+	{
+		var buff[1];
+		this.recv(buff, 1);
+		return *buff;
+	}
 	read(buff, max, end)
 	{
 		var pos = 1;

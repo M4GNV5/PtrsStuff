@@ -46,6 +46,8 @@ struct Socket
 
 	recv(buff, len);
 
+	readc(); //receive one byte
+
 	//read bytes into buff until 'end' byte is read or 'max' bytes were read
 	//returns count of bytes read
 	read(buff, max, end);
