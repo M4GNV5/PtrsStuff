@@ -1,4 +1,4 @@
-import "malloc", "free", "strcmp", "snprintf";
+import "free", "strcmp";
 
 struct MapEntry
 {
@@ -56,11 +56,7 @@ struct Map
 		}
 
 		if(this.useThrow)
-		{
-			var buff[128];
-			snprintf(buff, 128, "Cannot find key '%s'", key);
-			throw buff;
-		}
+			throw "Cannot find key '%s'", key;
 	}
 
 	set(key, val)
@@ -103,11 +99,7 @@ struct Map
 		}
 
 		if(this.useThrow)
-		{
-			var buff[128];
-			snprintf(buff, 128, "Cannot remove non exisiting key '%s'", key);
-			throw buff;
-		}
+			throw "Cannot remove non exisiting key '%s'", key;
 	}
 
 	free()
