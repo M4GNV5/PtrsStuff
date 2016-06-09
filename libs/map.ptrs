@@ -33,6 +33,15 @@ struct Map
 		this.useThrow = useThrow;
 	}
 
+	operator . (key)
+	{
+		return this.get(key);
+	}
+	operator [] (key)
+	{
+		return this.get(key);
+	}
+
 	has(key)
 	{
 		var curr = this.first;
