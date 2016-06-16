@@ -1,15 +1,28 @@
-import "TeamspeakQuery" from "../libs/ts3query.ptrs";
-import "printf", "sprintf", "strcpy", "strstr", "strchr", "strlen", "sscanf", "qsort", "rand", "srand", "time";
+import IrcClient from "../libs/irc.ptrs";
+import printf, sprintf, strcpy, strcmp, strstr, strchr, strlen, sscanf, qsort, rand, srand, time, sleep;
+srand(time(NULL));
 
-var host = "127.0.0.1";
-var user = "serveradmin";
-var password = "hunter2";
-var nick = "Munchkin";
-var channel = 66;
+var host = "irc.rizon.net";
+//var host = "127.0.0.1";
+var port = 6667;
+var channel = "#botdev";
+var nick = "MunchkinLLBot";
 
-var client = new TeamspeakQuery(host);
-client.login(user, password, nick);
+var client = new IrcClient(host, port, nick);
+printf("Connected\n");
+sleep(1);
 client.join(channel);
+
+var playerCount = 0;
+var player[6];
+var ingame = false;
+
+var cardPrototypes;
+var cards = {0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7};
+var cardIndex = -1;
+
+var broadcast;
+var draw;
 
 struct Card
 {
@@ -29,27 +42,22 @@ struct Card
 
 struct Player
 {
-	tsId;
-	tsNick[64];
+	nick{32};
 	card;
 	alive;
 	protected;
 
 	loose(killer, card)
 	{
-		var buff[256];
-
 		if(this.protected)
 		{
-			sprintf(buff, "%s tried to kill %s using the %s but he is protected",
-				killer.tsNick, this.tsNick, card.name, this.tsNick);
-			broadcast(buff);
+			broadcast("%s tried to kill %s using the %s but he is protected"
+				% killer.nick, this.nick, card.name, this.nick);
 			return;
 		}
 
-		sprintf(buff, "%s is out because of %s's card %s. %s's handcard was %d.%s",
-			this.tsNick, killer.tsNick, card.name, this.tsNick, this.card + 1, cardPrototypes[this.card].name);
-		broadcast(buff);
+		broadcast("%s is out because of %s's card %s. %s's handcard was %d.%s" %
+			this.nick, killer.nick, card.name, this.nick, this.card + 1, cardPrototypes[this.card].name);
 
 		this.alive = false;
 
@@ -66,18 +74,18 @@ struct Player
 
 		if(aliveCount == 1)
 		{
-			broadcast2("The game ended, the winner is %s", lastMan.tsNick);
+			broadcast("The game ended, the winner is %s" % lastMan.nick);
 			ingame = false;
 		}
 	}
 };
 
-var cardPrototypes = {
+cardPrototypes = [
 	new Card("Potted Plant", "Guess a players card, if you're right, hes out.", (self, target, arg) ->
 	{
 		if(arg <= 1 || arg > 8)
 		{
-			client.msgPriv(self.tsId, "Invalid argument, You have to guess the enemies card (number 2-8)");
+			client.notice(self.nick, "Invalid argument, You have to guess the enemies card (number 2-8)");
 			return false;
 		}
 
@@ -87,19 +95,15 @@ var cardPrototypes = {
 		}
 		else
 		{
-			var buff[256];
-			sprintf(buff, "%s played the 1.Potted Plant and guessed that %s has the card %d.%s but was wrong",
-				self.tsNick, target.tsNick, arg, cardPrototypes[arg - 1].name);
-			broadcast(buff);
+			broadcast("%s played the 1.Potted Plant and guessed that %s has the card %d.%s but was wrong" %
+				self.nick, target.nick, arg, cardPrototypes[arg - 1].name);
 		}
 		return true;
 	}),
 	new Card("Maul Rat", "Look at a hand.", (self, target) ->
 	{
-		var buff[128];
-		sprintf(buff, "%s's handcard is %d. %s", target.tsNick, target.card + 1, cardPrototypes[target.card].name);
-		client.msgPriv(self.tsId, buff);
-		broadcast2("%s spy'ed %s's card using a Maul Rat.", self.tsNick, target.tsNick);
+		client.notice(self.nick, "%s's handcard is %d. %s" % target.nick, target.card + 1, cardPrototypes[target.card].name);
+		broadcast("%s spy'ed %s's card using a Maul Rat." % self.nick, target.nick);
 		return true;
 	}),
 	new Card("Duck of Doom", "Compare two hands; Lower hand is out.", (self, target) ->
@@ -109,21 +113,19 @@ var cardPrototypes = {
 		else if(self.card > target.card)
 			target.loose(self, cardPrototypes[2]);
 		else
-			broadcast2("%s used Duck of Doom on %s but nothing happened", self.tsNick, target.tsNick);
+			broadcast("%s used Duck of Doom on %s but nothing happened" % self.nick, target.nick);
 		return true;
 	}),
 	new Card("Wishing Ring", "Protection until next turn", (self, target) ->
 	{
-		broadcast2("%s plays the 4.Wishing Ring on %s who is now protected until his next turn.", self.tsNick, target.tsNick);
+		broadcast("%s plays the 4.Wishing Ring on %s who is now protected until his next turn." % self.nick, target.nick);
 		target.protected = true;
 		return true;
 	}),
 	new Card("Net Troll", "One player discards his or her hand", (self, target) ->
 	{
-		var buff[256];
-		sprintf(buff, "%s plays the Net Troll on %s. %s discards his card %s",
-			self.tsNick, target.tsNick, target.tsNick, cardPrototypes[target.card].name);
-		broadcast(buff);
+		broadcast("%s plays the Net Troll on %s. %s discards his card %s" %
+			self.nick, target.nick, target.nick, cardPrototypes[target.card].name);
 
 		if(cardPrototypes[target.card].event != null)
 			cardPrototypes[target.card].event(1, target);
@@ -131,38 +133,32 @@ var cardPrototypes = {
 		{
 			target.card = draw();
 			if(ingame)
-			{
-				sprintf(buff, "Your new handcard is %d.%s", target.card + 1, cardPrototypes[target.card].name);
-				client.msgPriv(target.tsId, buff);
-			}
+				client.notice(target.nick, "Your new handcard is %d.%s" % target.card + 1, cardPrototypes[target.card].name);
 		}
 		return true;
 	}),
 	new Card("Dread Gazebo", "Trade cards.", (self, target) ->
 	{
-		broadcast2("%s plays the 6.Dread Gazebo and trades card with %s", self.tsNick, target.tsNick);
+		broadcast("%s plays the 6.Dread Gazebo and trades card with %s" % self.nick, target.nick);
 
 		var tmp = target.card;
 		target.card = self.card;
 		self.card = tmp;
 
-		var buff[128];
-		sprintf(buff, "You got the %d.%s", self.card + 1, cardPrototypes[self.card].name);
-		client.msgPriv(self.tsId, buff);
-		sprintf(buff, "You got the %d.%s", target.card + 1, cardPrototypes[target.card].name);
-		client.msgPriv(target.tsId, buff);
+		client.notice(self.nick, "You got the %d.%s" % self.card + 1, cardPrototypes[self.card].name);
+		client.notice(target.nick, "You got the %d.%s" % target.card + 1, cardPrototypes[target.card].name);
 		return true;
 	}),
 	new Card("Turbonium Dragon", "Discard if with Dread Gazebo or Net Troll", (self) ->
 	{
-		broadcast2("%s plays the Turbonium Dragon", self.tsNick);
+		broadcast("%s plays the Turbonium Dragon" % self.nick);
 		return true;
 	},
 	(id, self, other) ->
 	{
 		if(id == 0 && (other == 6 || other == 5))
 		{
-			this.play(self);
+			broadcast("%s plays the Turbonium Dragon" % self.nick);
 			return true;
 		}
 	}),
@@ -176,21 +172,11 @@ var cardPrototypes = {
 		if(id == 1)
 			self.loose(self, cardPrototypes[7]);
 	})
-};
-
-function broadcast2(fmt, arg1, arg2)
-{
-	var buff[256];
-	sprintf(buff, fmt, arg1, arg2);
-	broadcast(buff);
-}
+];
 
 function broadcast(msg)
 {
-	for(var i = 0; i < playerCount; i++)
-	{
-		client.msgPriv(player[i].tsId, msg);
-	}
+	client.send(channel, msg);
 }
 
 function draw()
@@ -210,8 +196,8 @@ function draw()
 			}
 		}
 
-		broadcast2("Out of cards. The winner is %s as he has the highest card %s",
-			winner.tsNick, cardPrototypes[max].name);
+		broadcast("Out of cards. The winner is %s as he has the highest card %s" %
+			winner.nick, cardPrototypes[max].name);
 
 		ingame = false;
 		return;
@@ -220,64 +206,60 @@ function draw()
 	return cards[cardIndex];
 }
 
-var playerCount = 0;
-var player{6};
-var ingame = false;
-
-var cards = [0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7];
-var cardIndex = -1;
-
 for(var i = 0; i < 6; i++)
 {
 	player[i] = new Player();
 }
 
-var sender[64];
-var message[256];
+var sender{64};
+var chan{64};
+var message{256};
 while(true)
 {
-	var id = client.receive(message, sender);
-	printf("%10.10s[%3d] : %s\n", sender, id, message);
+	client.receive(sender, chan, message);
+	printf("%10.10s|%10.10s : %s\n", sender, chan, message);
 
-	if(strstr(message, "!join") == message)
+	if(strcmp(chan, channel) != 0)
+		continue;
+
+	if(strstr(message, "-join") == message)
 	{
-		strcpy(player[playerCount].tsNick, sender);
-		player[playerCount].tsId = id;
+		strcpy(player[playerCount].nick, sender);
 		playerCount++;
 
 		if(playerCount == 6)
 			ingame = true;
 
-		broadcast2("Waiting for %d more players. Type !start to start now.", 6 - playerCount);
+		broadcast("Waiting for %d more players. Type -start to start now." % 6 - playerCount);
 	}
-	else if(playerCount > 0 && strstr(message, "!start") == message)
+	else if(playerCount > 1 && strstr(message, "-start") == message)
 	{
 		ingame = true;
 	}
 
 	if(ingame)
 	{
-		srand(time(NULL));
 		qsort(cards, 16, 1, (a, b) -> rand() - 1073741824);
 		qsort(player, playerCount, VARSIZE, (a, b) -> rand() - 1073741824);
 
-		var welcomeMsg[512];
+		var welcomeMsg{256};
 		strcpy(welcomeMsg, "Welcome to Munchkin Loot Letter. Players: ");
+		printf("%d\n", playerCount);
 		for(var i = 0; i < playerCount; i++)
 		{
 			player[i].alive = true;
 			var msg = welcomeMsg + strlen(welcomeMsg);
-			sprintf(msg, "[%d]%s, ", player[i].tsId, player[i].tsNick);
+			sprintf(msg, "%s, ", player[i].nick);
 		}
+		broadcast(welcomeMsg);
 
 		for(var i = 0; i < playerCount; i++)
 		{
 			var card = draw();
 			player[i].card = card;
 
-			sprintf(message, "Your handcard: %d.%s", card + 1, cardPrototypes[card].name);
-			client.msgPriv(player[i].tsId, welcomeMsg);
-			client.msgPriv(player[i].tsId, message);
+			client.notice(player[i].nick, "Your handcard: %d.%s" %
+				card + 1, cardPrototypes[card].name);
 		}
 
 		var turn = -1;
@@ -301,12 +283,7 @@ while(true)
 			currPlayer = player[turn];
 			currPlayer.protected = false;
 
-			sprintf(message, "It is now %s's turn.", player[turn].tsNick);
-			for(var i = 0; i < playerCount; i++)
-			{
-				if(i != turn)
-					client.msgPriv(player[i].tsId, message);
-			}
+			broadcast("It is now %s's turn." % player[turn].nick);
 
 			card = draw();
 			if(!ingame)
@@ -323,38 +300,36 @@ while(true)
 					return changeTurn();
 			}
 
-			sprintf(message, "It's your turn. Do you want to play %d.%s or %d.%s",
+			client.notice(currPlayer.nick, "It's your turn. Do you want to play %d.%s or %d.%s" %
 				card + 1, cardPrototypes[card].name, currPlayer.card + 1, cardPrototypes[currPlayer.card].name);
-			client.msgPriv(currPlayer.tsId, message);
 		}
 		changeTurn();
 
 		while(ingame)
 		{
-			id = client.receive(message, sender);
-			printf("%10.10s[%3d] : %s\n", sender, id, message);
+			client.receive(sender, chan, message);
+			printf("%10.10s|%10.10s : %s\n", sender, chan, message);
 
-			if(id == currPlayer.tsId && message[0] == 'p' && message[1] == ' ')
+			if(message[0] == 'p' && message[1] == ' ' && strcmp(currPlayer.nick, sender) == 0)
 			{
 				var len = strlen(message);
 				var place = message[2] - '0' - 1;
 
 				if(place != card && place != currPlayer.card)
 				{
-					var buff[256];
-					sprintf(buff, "You dont have the card %d.%s", place + 1, cardPrototypes[place].name);
-					client.msgPriv(currPlayer.tsId, buff);
+					client.notice(currPlayer.nick, "You dont have the card %d.%s" %
+						place + 1, cardPrototypes[place].name);
 					continue;
 				}
 
-				var _target = -1;
+				var targetbuff[64];
 				var arg = -1;
-				sscanf(message + 4, "%ld %ld", &_target, &arg);
+				sscanf(message + 4, "%s %ld", targetbuff, &arg);
 
 				var target = -1;
 				for(var i = 0; i < playerCount; i++)
 				{
-					if(player[i].tsId == _target)
+					if(strcmp(targetbuff, player[i].nick) == 0)
 					{
 						target = i;
 						break;
@@ -367,17 +342,17 @@ while(true)
 				if(place < 7 && (target < 0 || target > playerCount || !player[target].alive))
 				{
 					currPlayer.card = _hand;
-					client.msgPriv(currPlayer.tsId, "Invalid target use your a id announced at the beginning of the game.");
+					client.notice(currPlayer.nick, "Invalid target use a id announced at the beginning of the game.");
 				}
 				else if(!player[target].alive)
 				{
 					currPlayer.card = _hand;
-					client.msgPriv(currPlayer.tsId, "That targetted player is out of the game.");
+					client.notice(currPlayer.nick, "That targetted player is out of the game.");
 				}
 				else if(player[target].protected)
 				{
 					currPlayer.card = _hand;
-					client.msgPriv(currPlayer.tsId, "That targetted player is protected.");
+					client.notice(currPlayer.nick, "That targetted player is protected.");
 				}
 				else if(!cardPrototypes[place].play(currPlayer, player[target], arg))
 				{
@@ -385,7 +360,6 @@ while(true)
 				}
 				else
 				{
-					broadcast("----------------------------------------------------------------------------------------------------------------");
 					if(ingame)
 						changeTurn();
 				}
@@ -395,13 +369,14 @@ while(true)
 				if(message[4] != 0 && message[5] > '0' && message[5] < '9')
 				{
 					var cardId = message[5] - '0' - 1;
-					sprintf(message, "%d. %s : %s", cardId + 1, cardPrototypes[cardId].name, cardPrototypes[cardId].description);
-					client.msgPriv(id, message);
+					client.send(chan, "%d. %s : %s" % cardId + 1,
+						cardPrototypes[cardId].name, cardPrototypes[cardId].description);
 				}
 				else
 				{
-					client.msgPriv(id, "Get information about cards using help cardid. e.g. help 1");
-					client.msgPriv(id, "Play a card using p cardid target argument e.g. p 0 2 to play your card [0] onto player [2]");
+					client.send(chan, "Get information about cards using help cardid. e.g. help 1");
+					client.send(chan, "Play a card using p cardid target argument"
+						"e.g. p 1 Foo to play your card Potted Plant onto player Foo");
 				}
 			}
 		}
@@ -409,12 +384,4 @@ while(true)
 		cardIndex = -1;
 		playerCount = 0;
 	}
-}
-
-while(true)
-{
-
-
-	if(id != client.ownId)
-		client.msgPriv(id, message);
 }

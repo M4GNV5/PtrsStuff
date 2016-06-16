@@ -1,5 +1,5 @@
-import "strncmp", "strchr", "sprintf", "strlen";
-import "Socket" from "./network.ptrs";
+import strncmp, strchr, sprintf, strlen, printf;
+import Socket from "../libs/network.ptrs";
 
 struct IrcClient
 {
@@ -24,13 +24,19 @@ struct IrcClient
 		this.sendRaw("PRIVMSG ", receiver, " :", msg);
 	}
 
+	notice(receiver, msg)
+	{
+		this.sendRaw("NOTICE ", receiver, " :", msg);
+	}
+
 	receive(sender, channel, message)
 	{
-		var buff[513];
+		var buff{513};
 		while(true)
 		{
 			var count = this.socket.read(buff, 512, '\n');
 			buff[count] = 0;
+			printf("%s", buff);
 
 			if(strncmp(buff, "PING", 4) == 0)
 			{
@@ -54,21 +60,22 @@ struct IrcClient
 		}
 	}
 
-	free()
+	operator delete ()
 	{
 		if(this.socket.connected)
 			this.socket.disconnect();
-		free(this.socket);
-		free(this);
+		delete this.socket;
 	}
 
 	sendRaw()
 	{
 		while(*arguments != null)
 		{
+			printf("%s", *arguments);
 			this.socket.sends(*arguments++);
 		}
 
+		printf("\n");
 		this.socket.sends("\r\n");
 	}
 };
