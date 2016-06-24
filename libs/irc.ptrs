@@ -1,5 +1,5 @@
 import strncmp, strchr, sprintf, strlen, printf;
-import Socket from "../libs/network.ptrs";
+import Socket from "network.ptrs";
 
 struct IrcClient
 {
