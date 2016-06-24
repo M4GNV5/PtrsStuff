@@ -213,7 +213,7 @@ for(var i = 0; i < 6; i++)
 
 var sender{64};
 var chan{64};
-var message{256};
+var message{512};
 while(true)
 {
 	client.receive(sender, chan, message);
