@@ -36,7 +36,6 @@ struct IrcClient
 		{
 			var count = this.socket.read(buff, 512, '\n');
 			buff[count] = 0;
-			printf("%s", buff);
 
 			if(strncmp(buff, "PING", 4) == 0)
 			{
@@ -71,11 +70,9 @@ struct IrcClient
 	{
 		while(*arguments != null)
 		{
-			printf("%s", *arguments);
 			this.socket.sends(*arguments++);
 		}
 
-		printf("\n");
 		this.socket.sends("\r\n");
 	}
 };
