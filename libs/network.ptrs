@@ -8,9 +8,9 @@ import SDL_Init, SDLNet_Init,
 var INT_MAX = 0x7fffffff;
 
 if(SDL_Init(0) == -1)
-	throw cast<native>SDL_GetError() || "Unknown SDL_Init error";
+	throw as<native>SDL_GetError() || "Unknown SDL_Init error";
 if(SDLNet_Init() == -1)
-	throw cast<native>SDL_GetError() || "Unknown SDLNet_Init error";
+	throw as<native>SDL_GetError() || "Unknown SDLNet_Init error";
 
 struct Socket
 {
@@ -26,6 +26,11 @@ struct Socket
 		this.isServer = false;
 		this.socketset = NULL;
 	}
+	destructor()
+	{
+		if(this.connected)
+			this.disconnect();
+	}
 
 	connect(domain, port, createSet)
 	{
@@ -38,7 +43,7 @@ struct Socket
 		this.socket = SDLNet_TCP_Open(this.ip);
 
 		if(this.socket == NULL)
-			throw cast<native>SDL_GetError() || "Could not connect to server";
+			throw as<native>SDL_GetError() || "Could not connect to server";
 
 		this.connected = true;
 
@@ -88,16 +93,16 @@ struct Socket
 	{
 		this.socketset = SDLNet_AllocSocketSet(1);
 		if(this.socketset == NULL)
-			throw cast<native>SDL_GetError() || "Could not create SocketSet";
+			throw as<native>SDL_GetError() || "Could not create SocketSet";
 		if(SDLNet_AddSocket(this.socketset, this.socket) == -1)
-			throw cast<native>SDL_GetError() || "Could not create SocketSet";
+			throw as<native>SDL_GetError() || "Could not create SocketSet";
 	}
 	available(timeout)
 	{
 		timeout = timeout || 0;
 		var ready = SDLNet_CheckSockets(this.socketset, timeout);
 		if(ready < 0 || ready > INT_MAX)
-			throw cast<native>SDL_GetError() || "Could not check availability";
+			throw as<native>SDL_GetError() || "Could not check availability";
 		return ready > 0;
 	}
 
@@ -108,7 +113,7 @@ struct Socket
 
 		var result = SDLNet_TCP_Send(this.socket, buff, len);
 		if(result != len)
-			throw cast<native>SDL_GetError() || "Unknown SDLNet error";
+			throw as<native>SDL_GetError() || "Unknown SDLNet error";
 	}
 	sends(str)
 	{
@@ -128,7 +133,7 @@ struct Socket
 
 		var result = SDLNet_TCP_Recv(this.socket, buff, len);
 		if(result <= 0 || result > INT_MAX)
-			throw cast<native>SDL_GetError() || "Unknown SDLNet error";
+			throw as<native>SDL_GetError() || "Unknown SDLNet error";
 	}
 	readc()
 	{
@@ -175,12 +180,12 @@ struct SocketServer
 	{
 		this.ip = malloc(64);
 		if(SDLNet_ResolveHost(this.ip, NULL, port) == -1)
-			throw cast<native>SDL_GetError() || "Could not start listening";
+			throw as<native>SDL_GetError() || "Could not start listening";
 
 		this.socket = SDLNet_TCP_Open(this.ip);
 
 		if(this.socket == NULL)
-			throw cast<native>SDL_GetError() || "Could not connect to server";
+			throw as<native>SDL_GetError() || "Could not connect to server";
 	}
 
 	accept(checkInterval, createSet)
