@@ -66,11 +66,11 @@ struct IrcClient
 		delete this.socket;
 	}
 
-	sendRaw()
+	sendRaw(args...)
 	{
-		while(*arguments != null)
+		while(*args != null)
 		{
-			this.socket.sends(*arguments++);
+			this.socket.sends(*args++);
 		}
 
 		this.socket.sends("\r\n");

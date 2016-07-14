@@ -1,19 +1,19 @@
-import "printf", "strcmp", "strstr";
-import "IrcClient" from "../libs/irc.ptrs";
+import printf, strcmp, strstr, usleep;
+import IrcClient from "../libs/irc.ptrs";
 
 var host = "irc.rizon.net";
 //var host = "127.0.0.1";
 var port = 6667;
 var chan = "#botdev";
-var nick = "ptrsbot";
+var nick = "testytestytest";
 
 var client = new IrcClient(host, port, nick);
 printf("Connected\n");
 client.join(chan);
 
-var sender[64];
-var channel[32];
-var msg[512];
+var sender{64};
+var channel{32};
+var msg{512};
 while(true)
 {
 	client.receive(sender, channel, msg);
