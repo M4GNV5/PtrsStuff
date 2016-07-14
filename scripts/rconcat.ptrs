@@ -1,11 +1,11 @@
-import "printf", "fgets", "stdin", "atoi", "exit", "memcpy", "free", "getpass";
-import "Rcon" from "../libs/rcon.ptrs";
+import printf, fgets, stdin, atoi, exit, memcpy, free, getpass;
+import Rcon from "../libs/rcon.ptrs";
 memcpy(&stdin, stdin, 8);
 
-var port = atoi(arguments[3]);
-printf("connecting to %s:%d\n", arguments[2], port);
+var port = atoi(arguments[1]);
+printf("connecting to %s:%d\n", arguments[0], port);
 var pass = getpass("Password: ");
-var rcon = new Rcon(arguments[2], port, pass);
+var rcon = new Rcon(arguments[0], port, pass);
 
 if(rcon.error)
 {

@@ -1,64 +1,56 @@
-import "memcpy", "memset", "strlen", "strdup", "strcpy", "free";
-import "Socket" from "network.ptrs";
+import memcpy, memset, strlen, strdup, strcpy, free;
+import Socket, INT_MAX from "network.ptrs";
 
 struct Rcon
 {
 	socket;
 	nextId;
-	error;
 	constructor(ip, port, password)
 	{
 		this.nextId = 1;
 		this.socket = new Socket();
 		this.socket.connect(ip, port);
-
-		var resp = this.sendPackage(3, password);
-		if(resp == NULL)
-			this.error = "Invalid password";
-		else
-			free(resp);
+		free(this.sendPackage(3, password));
 	}
+	destructor()
+	{
+		delete this.socket;
+		this.socket.disconnect();
+		free(this.socket);
+	}
+
 	command(cmd)
 	{
 		return this.sendPackage(2, cmd);
-	}
-	end()
-	{
-		this.socket.disconnect();
-		free(this.socket);
-		free(this);
 	}
 	sendPackage(pkgType, payload)
 	{
 		var len = strlen(payload) + 10;
 		var fullLen = len + 4;
 		var buff[fullLen];
-		buff = cast<native>buff;
+		buff = as<native>buff;
 
-		memcpy(buff, &len, 4); //lets just hope our cpu uses little endian
+		memcpy(buff, &len, 4);
 		memcpy(buff + 4, &(this.nextId), 4);
 		memcpy(buff + 8, &pkgType, 4);
 		strcpy(buff + 12, payload);
 		memset(buff + fullLen - 2, 0, 2);
 
 		this.nextId++;
-		this.error = this.socket.send(buff, fullLen);
-		if(this.error)
-			return;
+		this.socket.send(buff, fullLen);
 
 		var responseLen = 0;
-		this.error = this.socket.recv(&responseLen, 4);
-		if(this.error)
-			return;
+		this.socket.recv(&responseLen, 4);
 
-		var responseBuff[responseLen];
-		this.error = this.socket.recv(responseBuff, responseLen);
-		if(this.error)
-			return;
+		var responseBuff{responseLen};
+		this.socket.recv(responseBuff, responseLen);
 
 		var id = 0;
 		memcpy(&id, responseBuff, 4);
-		if(id != -1)
-			return strdup(responseBuff + 8);
+
+		if(id < 0 || id > INT_MAX)
+			throw "Rcon error: Received id %d. Invalid password?" % id;
+		else
+			return as<native>strdup(responseBuff + 8);
 	}
 };
