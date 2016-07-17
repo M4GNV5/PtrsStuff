@@ -1,26 +1,18 @@
-import "free", "strcmp";
+import strcmp, strncpy;
 
 struct MapEntry
 {
-	key;
+	key{32};
 	value;
 	next = null;
 
 	constructor(key, value = null)
 	{
-		this.key = key;
+		strncpy(this.key, cast<native>key, 31);
+		this.key[31] = 0;
 		this.value = value;
 	}
 };
-
-function compare(a, b)
-{
-	if(a == b || typeof b != type<float> && cast<int>a == cast<int>b)
-		return true;
-	else if(typeof a == type<native> && typeof b == type<native>)
-		return strcmp(a, b) == 0;
-	return false;
-}
 
 struct Map
 {
@@ -32,94 +24,108 @@ struct Map
 	{
 		this.useThrow = useThrow;
 	}
-
-	operator . (key)
-	{
-		return this.get(key);
-	}
-	operator [] (key)
-	{
-		return this.get(key);
-	}
-
-	has(key)
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(compare(curr.key, key))
-				return true;
-			curr = curr.next;
-		}
-		return false;
-	}
-
-	get(key)
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(compare(curr.key, key))
-				return curr.value;
-			curr = curr.next;
-		}
-
-		if(this.useThrow)
-			throw "Cannot find key '%s'", key;
-	}
-
-	set(key, val)
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(compare(curr.key, key))
-			{
-				curr.value = val;
-				return;
-			}
-			curr = curr.next;
-		}
-
-		var entry = new MapEntry(key, val);
-		entry.next = this.first;
-		this.first = entry;
-		this.length++;
-	}
-
-	remove(key)
-	{
-		var last = null;
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(compare(key, curr.key))
-			{
-				if(last == null)
-					this.first = curr.next;
-				else
-					last.next = curr.next;
-				free(curr);
-				this.length--;
-				return;
-			}
-			last = curr;
-			curr = curr.next;
-		}
-
-		if(this.useThrow)
-			throw "Cannot remove non exisiting key '%s'", key;
-	}
-
-	free()
+	destructor()
 	{
 		var curr = this.first;
 		while(curr != null)
 		{
 			var _curr = curr;
 			curr = curr.next;
-			free(_curr);
+			delete _curr;
 		}
-		free(this);
+	}
+
+	operator this.key
+	{
+		return this.get(key);
+	}
+	operator this[key]
+	{
+		return this.get(key);
+	}
+	operator sizeof this
+	{
+		return this.length;
+	}
+
+	getEntry(key, previous = null)
+	{
+		key = cast<native>key;
+		var prev = null;
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(strcmp(key, curr.key) == 0)
+			{
+				if(previous != null)
+					*previous = prev;
+				return curr;
+			}
+
+			prev = curr;
+			curr = curr.next;
+		}
+
+		if(previous != null)
+			*previous = prev;
+		return null;
+	}
+
+	has(key)
+	{
+		return !!this.getEntry(key);
+	}
+
+	get(key)
+	{
+		var entry = this.getEntry(key);
+		if(entry != null)
+			return entry.value;
+		if(this.useThrow)
+			throw "Cannot find key '%s'" % key;
+	}
+
+	set(key, val)
+	{
+		var prev;
+		var entry = this.getEntry(key, &prev);
+
+		if(entry != null)
+		{
+			entry.value = val;
+		}
+		else
+		{
+			entry = new MapEntry(key, val);
+			if(prev == null)
+				this.first = entry;
+			else
+				prev.next = entry;
+			this.length++;
+		}
+	}
+
+	remove(key)
+	{
+		var prev;
+		var entry = this.getEntry(key, &prev);
+		if(entry == null)
+		{
+			if(this.useThrow)
+				throw "Cannot remove non exisiting key '%s'" % key;
+			return;
+		}
+		else
+		{
+			if(prev == null)
+				this.first = entry.next;
+			else
+				prev.next = entry.next;
+
+			this.length--;
+			var val = entry.value;
+			delete entry;
+			return val;
+		}
 	}
 };
