@@ -1,0 +1,169 @@
+import sprintf, strlen, malloc, strdup, free, strncmp, strtol;
+import Map from "./map.ptrs";
+
+function json_encode(val)
+{
+	if(typeof val == type<undefined>)
+	{
+		return as<native>strdup("null");
+	}
+	else if(typeof val == type<int> || typeof val == type<float>)
+	{
+		return as<native>strdup(cast<native>val);
+	}
+	else if(typeof val == type<native>)
+	{
+		var len = strlen(val);
+		var escapeCount = 0;
+		for(var i = 0; i < len; i++)
+		{
+			if(val[i] < ' ' || val[i] > '~')
+				escapeCount++;
+		}
+
+		var buff = as<native>malloc(3 + len + 3 * escapeCount);
+		var buffptr = buff;
+		*buffptr++ = '"';
+
+		for(var i = 0; i < len; i++)
+		{
+			if(val[i] < ' ' || val[i] > '~')
+				buffptr += sprintf(buffptr, "\\x%hhX", val[i]);
+			else
+				*buffptr++ = val[i];
+		}
+
+		*buffptr++ = '"';
+		*buffptr = 0;
+		return as<native>strdup(buff);
+	}
+	if(typeof val == type<struct>)
+	{
+		var count = 0;
+		for(var key in val)
+			count++;
+
+		var i = 0;
+		var keyStrings[count];
+		var valueStrings[count];
+		var len = 2;
+
+		for(var key in val)
+		{
+			keyStrings[i] = json_encode(key);
+			valueStrings[i] = json_encode(val[key]);
+			len += strlen(keyStrings[i]) + strlen(valueStrings[i]) + 2;
+			i++;
+		}
+
+		var buff = as<native>malloc(len);
+		buff[0] = '{';
+		var buffptr = buff + 1;
+
+		i = 0;
+		for(var key in val)
+		{
+			buffptr += sprintf(buffptr, "%s:%s,", keyStrings[i], valueStrings[i]);
+			free(keyStrings[i]);
+			free(valueStrings[i]);
+			i++;
+		}
+
+		*--buffptr = '}';
+		buffptr[1] = 0;
+		return buff;
+	}
+	else
+	{
+		return json_encode(cast<native>val);
+	}
+}
+
+function json_decode(str)
+{
+	var map = new Map();
+	var parseObject;
+
+	function skipSpaces()
+	{
+		while(*str == ' ' || *str == '\t' || *str == '\n')
+			str++;
+	}
+	function parseString()
+	{
+		if(*str++ != '"')
+			throw "Invalid JSON, expected \" got %c" % *--str;
+
+		var ptr = str;
+		while(*str != '"')
+			str++;
+		*str++ = 0;
+		return ptr;
+	}
+	function parseValue()
+	{
+		if(*str == '{')
+			return parseObject();
+		if(*str == '"')
+			return parseString();
+		if(*str >= '0' && *str <= '9')
+			return strtol(str, &str, 0);
+
+		if(strncmp(str, "null", 4) == 0)
+		{
+			str += 4;
+			return undefined;
+		}
+		if(strncmp(str, "true", 4) == 0)
+		{
+			str += 4;
+			return undefined;
+		}
+		if(strncmp(str, "false", 5) == 0)
+		{
+			str += 5;
+			return undefined;
+		}
+
+		throw "Invalid JSON, expected value got %c" % *str;
+	}
+	function parseObject()
+	{
+		var map = new Map();
+
+		if(*str++ != '{')
+			throw "Invalid JSON, expected { got %c" % *--str;
+
+		if(*str == '}')
+		{
+			str++;
+			return map;
+		}
+
+		while(true)
+		{
+			skipSpaces();
+			var key = parseString();
+			skipSpaces();
+
+			if(*str++ != ':')
+				throw "Invalid JSON, expected : got %c" % *--str;
+
+			skipSpaces();
+			map.set(key, parseValue());
+			skipSpaces();
+
+
+
+			if(*str == '}')
+				break;
+			if(*str++ != ',')
+				throw "Invalid JSON, expected , got %c" % *--str;
+		}
+		str++;
+
+		return map;
+	}
+
+	return parseValue();
+}
