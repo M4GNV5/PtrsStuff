@@ -150,7 +150,7 @@ function json_decode(str)
 				throw "Invalid JSON, expected : got %c" % *--str;
 
 			skipSpaces();
-			map.set(key, parseValue());
+			*map[key] = parseValue();
 			skipSpaces();
 
 

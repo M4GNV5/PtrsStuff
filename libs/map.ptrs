@@ -6,9 +6,10 @@ struct MapEntry
 	value;
 	next = null;
 
-	constructor(key, value = null)
+	constructor(key, value)
 	{
-		strncpy(this.key, cast<native>key, 31);
+		if(key)
+			strncpy(this.key, cast<native>key, 31);
 		this.key[31] = 0;
 		this.value = value;
 	}
@@ -18,11 +19,11 @@ struct Map
 {
 	first = null;
 	length = 0;
-	useThrow;
+	newEntry;
 
-	constructor(useThrow = true)
+	constructor()
 	{
-		this.useThrow = useThrow;
+		this.newEntry = new MapEntry();
 	}
 	destructor()
 	{
@@ -33,6 +34,8 @@ struct Map
 			curr = curr.next;
 			delete _curr;
 		}
+
+		delete this.newEntry;
 	}
 
 	operator this.key
@@ -50,6 +53,13 @@ struct Map
 
 	getEntry(key, previous = null)
 	{
+		if(typeof this.newEntry.value != type<undefined>)
+		{
+			this.newEntry.next = this.first;
+			this.first = this.newEntry;
+			this.newEntry = new MapEntry();
+		}
+
 		key = cast<native>key;
 		var prev = null;
 		var curr = this.first;
@@ -80,28 +90,14 @@ struct Map
 	{
 		var entry = this.getEntry(key);
 		if(entry != null)
-			return entry.value;
-		if(this.useThrow)
-			throw "Cannot find key '%s'" % key;
-	}
-
-	set(key, val)
-	{
-		var prev;
-		var entry = this.getEntry(key, &prev);
-
-		if(entry != null)
 		{
-			entry.value = val;
+			return &entry.value;
 		}
 		else
 		{
-			entry = new MapEntry(key, val);
-			if(prev == null)
-				this.first = entry;
-			else
-				prev.next = entry;
-			this.length++;
+			strncpy(this.newEntry.key, cast<native>key, 31);
+			this.newEntry.key[31] = 0;
+			return &this.newEntry.value;
 		}
 	}
 
@@ -111,9 +107,7 @@ struct Map
 		var entry = this.getEntry(key, &prev);
 		if(entry == null)
 		{
-			if(this.useThrow)
-				throw "Cannot remove non exisiting key '%s'" % key;
-			return;
+			throw "Cannot remove non exisiting key '%s'" % key;
 		}
 		else
 		{

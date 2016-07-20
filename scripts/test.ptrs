@@ -5,24 +5,17 @@ import json_encode, json_decode from "../libs/json.ptrs";
 var map = new Map();
 function tryGet(key)
 {
-	try
-	{
-		printf("map[%s] = %s\n", cast<native>key, cast<native>map[key]);
-	}
-	catch(err)
-	{
-		printf("Map error: %s\n", err);
-	}
+	printf("map[%s] = %s\n", cast<native>key, cast<native>*map[key]);
 }
-map.set("foo", 42);
+*map.foo = 42;
 tryGet("foo");
-map.set("foo", 1337);
+*map.foo = 1337;
 tryGet("foo");
 map.remove("foo");
 tryGet("foo");
 
-map.set("bar", 31.12);
-map.set(42, map);
+*map.bar = 31.12;
+*map[42] = map;
 tryGet("bar");
 tryGet(42);
 tryGet("42");
