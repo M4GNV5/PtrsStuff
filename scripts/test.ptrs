@@ -1,6 +1,7 @@
 import printf;
 import Map from "../libs/map.ptrs";
 import json_encode, json_decode from "../libs/json.ptrs";
+import http_get from "../libs/http.ptrs";
 
 var map = new Map();
 function tryGet(key)
@@ -21,8 +22,9 @@ tryGet(42);
 tryGet("42");
 
 delete map;
-
 printf("\n");
+
+
 
 struct Test
 {
@@ -49,6 +51,7 @@ printf("\n");
 
 function dumpMap(map, indent = 0)
 {
+	map.x; //update map.newEntry
 	var curr = map.first;
 	while(curr != null)
 	{
@@ -68,3 +71,11 @@ function dumpMap(map, indent = 0)
 	}
 }
 dumpMap(json_decode(str));
+printf("\n");
+
+
+
+var resp = http_get("http://m4gnus.de/", 1447);
+dumpMap(resp.header);
+printf("\nContent:\n%s\n", resp.content);
+delete resp;

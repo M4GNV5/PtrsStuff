@@ -1,0 +1,81 @@
+import realloc, free, atoi, strdup, strchr, memcpy, strncmp, strlen, strcpy;
+import Socket from "network.ptrs";
+import Map from "map.ptrs";
+
+struct HttpResponse
+{
+	code;
+	codeMessage;
+	header = null;
+	content = NULL;
+
+	destructor()
+	{
+		if(this.header != null)
+		{
+			delete this.header;
+			free(this.content);
+		}
+	}
+
+	read(sock)
+	{
+		if(this.header != null)
+			throw "Cannot read twice with the same HttpResponse";
+
+		var buff{1024};
+
+		{
+			var count = sock.read(buff, 1023, '\n');
+			buff[count - 2] = 0;
+			var codeIndex = strchr(buff, ' ');
+			this.code = atoi(codeIndex);
+			this.codeMessage = strdup(codeIndex + 4);
+		}
+
+		this.header = new Map();
+		while(true)
+		{
+			var count = sock.read(buff, 1023, '\n');
+			buff[count - 2] = 0;
+
+			if(count == 2) //\r\n
+				break;
+
+			var dot = as<native>strchr(buff, ':');
+			*dot = 0;
+			*this.header[buff] = as<native>strdup(dot + 2);
+		}
+
+		var count = 1024;
+		var timesRead = 0;
+		while(count == 1024)
+		{
+			count = sock.readAvailable(buff, 1024);
+			this.content = as<native>realloc(this.content, timesRead * 1024 + count + 1);
+			memcpy(this.content + timesRead * 1024, buff, count);
+			timesRead++;
+		}
+		this.content[timesRead * 1024 + count] = 0;
+	}
+};
+
+function http_get(url, port = 80)
+{
+	if(strncmp(url, "http://", 7) != 0)
+		throw "Only http protocol is supported";
+
+	var buff{strlen(url + 6)};
+	strcpy(buff, url + 7);
+	*as<native>strchr(buff, '/') = 0;
+
+	var sock = new Socket();
+	sock.connect(buff, port);
+	sock.sends("GET %s HTTP/1.0\r\n\r\n" % strchr(url + 7, '/'));
+
+	var resp = new HttpResponse();
+	resp.read(sock);
+	delete sock;
+
+	return resp;
+}
