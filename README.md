@@ -28,6 +28,8 @@ struct Map
 ```C
 struct HttpResponse
 {
+	code; //html status code (200, 404, etc.)
+	message; //html status message (OK, Not Found, etc.)
 	header; //Map with all received http header
 	content; //body string
 }

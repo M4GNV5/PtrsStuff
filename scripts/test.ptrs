@@ -75,7 +75,8 @@ printf("\n");
 
 
 
-var resp = http_get("http://m4gnus.de/", 1447);
+var resp = http_get("http://m4gnus.de/");
+printf("Response Code: %d\nReponse Message: %s\n", resp.code, resp.message);
 dumpMap(resp.header);
 printf("\nContent:\n%s\n", resp.content);
 delete resp;
