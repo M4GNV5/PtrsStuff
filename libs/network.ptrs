@@ -99,6 +99,9 @@ struct Socket
 	}
 	available(timeout)
 	{
+		if(!this.connected)
+			return false;
+
 		timeout = timeout || 0;
 		var ready = SDLNet_CheckSockets(this.socketset, timeout);
 		if(ready < 0 || ready > INT_MAX)
@@ -133,7 +136,11 @@ struct Socket
 
 		var result = SDLNet_TCP_Recv(this.socket, buff, len);
 		if(result <= 0 || result > INT_MAX)
-			throw as<native>SDL_GetError() || "Unknown SDLNet error";
+		{
+			this.disconnect();
+			return false;
+		}
+		return true;
 	}
 	readc()
 	{
@@ -152,7 +159,8 @@ struct Socket
 
 		while(*curr != end && pos < max)
 		{
-			this.recv(curr, 1);
+			if(!this.recv(curr, 1))
+				return pos;
 			buff[pos] = *curr;
 			pos++;
 		}
@@ -164,7 +172,8 @@ struct Socket
 		var curr[1];
 		while(this.available() && pos < max)
 		{
-			this.recv(curr, 1);
+			if(!this.recv(curr, 1))
+				return pos;
 			buff[pos] = *curr;
 			pos++;
 		}
