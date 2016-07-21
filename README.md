@@ -6,10 +6,46 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 - `ncchat.ptrs`: Chat server you can connect to using netcat
 - `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
 - `test.ptrs`: small test script for console, json and network libraries
+- `ircbot.ptrs`: A very basic IRC Bot that can advertise himself
+- `munchkin.ptrs`: IRC bot to play Munchkin Loot Letters
 
 ## Libraries
-- `console.ptrs`: `print(...)` and `println(...)` much like javascript's console.log
-- `json.ptrs`: `json_encode(val)` much like php's `json_encode` or javascript's `JSON.stringify`
+- `map.ptrs`:
+```C
+struct Map
+{
+	//returns a pointer to a value that can be set/read
+	operator this.key;
+	operator this[key];
+	get(key);
+
+	has(key); //check if a key exists in the map
+	remove(key); //removes a key from the map
+}
+```
+
+- `http.ptrs`
+```C
+struct HttpResponse
+{
+	header; //Map with all received http header
+	content; //body string
+}
+
+//perform a http GET reqeust, returns a HttpResponse
+http_get(url, port = 80);
+```
+
+- `json.ptrs`:
+```C
+//much like php's json_encode or javascript's JSON.stringify
+//returns a malloc'ed string that should be passed to free
+json_encode(val)
+
+//much like php's json_decode or javascript's JSON.parse
+//parses the json into a Map (see map.ptrs)
+json_decode(str)
+```
 
 - `regexp.ptrs`:
 ```C
