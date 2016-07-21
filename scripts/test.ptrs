@@ -1,5 +1,6 @@
-import printf;
+import printf, free;
 import Map from "../libs/map.ptrs";
+import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
 
@@ -71,6 +72,28 @@ function dumpMap(map, indent = 0)
 	}
 }
 dumpMap(json_decode(str));
+printf("\n");
+
+
+
+function dumpMatches(reg, str)
+{
+	var matches = reg.match(str);
+	printf("For string %s\n", str);
+
+	if(matches == null)
+		return printf("\tNo Match\n");
+
+	for(var i = 0; matches[i] != NULL; i++)
+	{
+		printf("\tmatch %d: %s\n", i, matches[i]);
+	}
+	free(matches);
+}
+var reg = new RegExp("a?(b+)x{3}", true);
+dumpMatches(reg, "abbxxx");
+dumpMatches(reg, "aaaaaabbbbbxx");
+dumpMatches(reg, "bbaabbbbbxxx");
 printf("\n");
 
 
