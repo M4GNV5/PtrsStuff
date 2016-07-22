@@ -52,23 +52,22 @@ printf("\n");
 
 function dumpMap(map, indent = 0)
 {
-	map.x; //update map.newEntry
-	var curr = map.first;
-	while(curr != null)
+	for(var key in map)
 	{
 		for(var i = 0; i < indent; i++)
 			printf(" ");
 
-		if(curr.value instanceof Map)
+		var val = *map[key];
+
+		if(val instanceof Map)
 		{
-			printf("%*s:\n", indent - 32, curr.key);
-			dumpMap(curr.value, indent + 4);
+			printf("%*s:\n", indent - 32,key);
+			dumpMap(val, indent + 4);
 		}
 		else
 		{
-			printf("%*s: %s\n", indent - 32, curr.key, cast<native>curr.value);
+			printf("%*s: %s\n", indent - 32, key, cast<native>val);
 		}
-		curr = curr.next;
 	}
 }
 dumpMap(json_decode(str));

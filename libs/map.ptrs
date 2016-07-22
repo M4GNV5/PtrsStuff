@@ -50,8 +50,19 @@ struct Map
 	{
 		return this.length;
 	}
+	operator in this
+	{
+		this.appendNewEntry();
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(yield curr.key)
+				return;
+			curr = curr.next;
+		}
+	}
 
-	getEntry(key, previous = null)
+	appendNewEntry()
 	{
 		if(typeof this.newEntry.value != type<undefined>)
 		{
@@ -59,6 +70,11 @@ struct Map
 			this.first = this.newEntry;
 			this.newEntry = new MapEntry();
 		}
+	}
+
+	getEntry(key, previous = null)
+	{
+		this.appendNewEntry();
 
 		key = cast<native>key;
 		var prev = null;
