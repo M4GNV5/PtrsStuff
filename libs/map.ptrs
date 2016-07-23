@@ -56,7 +56,7 @@ struct Map
 		var curr = this.first;
 		while(curr != null)
 		{
-			if(yield curr.key)
+			if(yield curr.key, curr.value, &curr.value)
 				return;
 			curr = curr.next;
 		}

@@ -52,12 +52,10 @@ printf("\n");
 
 function dumpMap(map, indent = 0)
 {
-	foreach(key in map)
+	foreach(key, val in map)
 	{
 		for(var i = 0; i < indent; i++)
 			printf(" ");
-
-		var val = *map[key];
 
 		if(val instanceof Map)
 		{
