@@ -40,7 +40,7 @@ function json_encode(val)
 	if(typeof val == type<struct>)
 	{
 		var count = 0;
-		for(var key in val)
+		foreach(key in val)
 			count++;
 
 		var i = 0;
@@ -48,10 +48,10 @@ function json_encode(val)
 		var valueStrings[count];
 		var len = 2;
 
-		for(var key in val)
+		foreach(key, value in val)
 		{
 			keyStrings[i] = json_encode(key);
-			valueStrings[i] = json_encode(val[key]);
+			valueStrings[i] = json_encode(value);
 			len += strlen(keyStrings[i]) + strlen(valueStrings[i]) + 2;
 			i++;
 		}
@@ -60,13 +60,11 @@ function json_encode(val)
 		buff[0] = '{';
 		var buffptr = buff + 1;
 
-		i = 0;
-		for(var key in val)
+		for(var i = 0; i < count; i++)
 		{
 			buffptr += sprintf(buffptr, "%s:%s,", keyStrings[i], valueStrings[i]);
 			free(keyStrings[i]);
 			free(valueStrings[i]);
-			i++;
 		}
 
 		*--buffptr = '}';

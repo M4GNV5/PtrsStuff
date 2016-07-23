@@ -52,7 +52,7 @@ printf("\n");
 
 function dumpMap(map, indent = 0)
 {
-	for(var key in map)
+	foreach(key in map)
 	{
 		for(var i = 0; i < indent; i++)
 			printf(" ");
