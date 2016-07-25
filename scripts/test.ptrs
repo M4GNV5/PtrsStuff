@@ -1,5 +1,6 @@
 import printf, free;
 import Map from "../libs/map.ptrs";
+import List from "../libs/list.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
@@ -27,6 +28,18 @@ printf("\n");
 
 
 
+var list = new List();
+list.push("ahoi", 666, "yar har", 42, 31.12);
+list.unshift(13, 37);
+
+foreach(val, i in list)
+{
+	printf("list[%d] = %s\n", i, cast<native>val);
+}
+printf("\n");
+
+
+
 struct Test
 {
 	foo = "ahoi";
@@ -46,9 +59,7 @@ instance.somekey = "Hello World!";
 instance.nested = new Test();
 
 var str = json_encode(instance);
-printf("%s\n", str);
-
-printf("\n");
+printf("%s\n\n", str);
 
 function dumpMap(map, indent = 0)
 {
@@ -98,5 +109,5 @@ printf("\n");
 var resp = http_get("http://m4gnus.de/");
 printf("Response Code: %d\nReponse Message: %s\n", resp.code, resp.message);
 dumpMap(resp.header);
-printf("\nContent:\n%s\n", resp.content);
+printf("Content:\n%s\n", resp.content);
 delete resp;

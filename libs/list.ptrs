@@ -1,0 +1,188 @@
+import malloc, free;
+
+struct ListEntry
+{
+	value;
+	next;
+
+	constructor(value, next = null)
+	{
+		this.value = value;
+		this.next = next;
+	}
+};
+
+struct List
+{
+	first = null;
+	last = null;
+	length = 0;
+
+	destructor()
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			var prev = curr;
+			curr = curr.next;
+			delete prev;
+		}
+	}
+
+	operator this[index]
+	{
+		var val = this.getEntry(cast<int>index);
+		return &val.value;
+	}
+	operator sizeof this
+	{
+		return this.length;
+	}
+	operator in this
+	{
+		var i = 0;
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(yield curr.value, i++, &curr.value)
+				return;
+			curr = curr.next;
+		}
+	}
+
+	getEntry(index, previous = null)
+	{
+		var prev = null;
+		var curr = this.first;
+		var _index = index;
+		while(curr != null && _index-- > 0)
+		{
+			prev = curr;
+			curr = curr.next;
+		}
+
+		if(curr == null)
+			throw "Index %d is not in list of length %d" % index, this.length;
+
+		if(previous != null)
+			*previous = prev;
+		return curr;
+	}
+
+	push(values...)
+	{
+		for(var i = 0; i < sizeof(values); i++)
+		{
+			var entry = new ListEntry(values[i]);
+
+			if(this.last == null)
+				this.first = entry;
+			else
+				this.last.next = entry;
+			this.last = entry;
+		}
+		this.length += sizeof(values);
+	}
+	unshift(values...)
+	{
+		if(sizeof(values) > 0)
+		{
+			var start = this.first;
+			var prev = this.first = new ListEntry(values[0]);
+			for(var i = 1; i < sizeof(values); i++)
+			{
+				prev.next = new ListEntry(values[i]);
+				prev = prev.next;
+			}
+			prev.next = start;
+			this.length += sizeof(values);
+		}
+	}
+	insert(index, value)
+	{
+		var prev;
+		var curr = this.getEntry(index, &prev);
+		var entry = new ListEntry(value, curr);
+
+		if(prev == null)
+			this.first = entry;
+		else
+			prev.next = entry;
+		this.length++;
+	}
+
+	splice(index, deleteCount, insert...)
+	{
+		var prev;
+		var curr = this.getEntry(index, &prev);
+
+		for(var i = 0; i < deleteCount; i++)
+		{
+			var old = curr;
+			curr = curr.next;
+			delete old;
+		}
+		this.length -= deleteCount;
+
+		for(var i = 0; i < sizeof(insert); i++)
+		{
+			curr = new ListEntry(insert[i], curr);
+		}
+		this.length += sizeof(insert);
+
+		if(prev == null)
+			this.first = curr;
+		else
+			prev.next = curr;
+	}
+
+	indexOf(value, start = 0, compare = (a, b) -> a == b)
+	{
+		var curr = this.getEntry(start);
+		for(var i = 0; curr != null; i++)
+		{
+			if(compare(curr.value, value))
+				return i;
+			curr = curr.next;
+		}
+		return -1;
+	}
+	lastIndexOf(value, start = 0, compare = (a, b) -> a == b)
+	{
+		var last = -1;
+		var curr = this.getEntry(start);
+		for(var i = 0; curr != null; i++)
+		{
+			if(compare(curr.value, value, i))
+				last = i;
+			curr = curr.next;
+		}
+		return last;
+	}
+
+	fromArray(buff, len = sizeof(buff))
+	{
+		var list = new List();
+		for(var i = 0; i < len; i++)
+			list.push(buff[i]);
+
+		return list;
+	}
+	toArray(buff, max)
+	{
+		if(!buff)
+		{
+			max = this.length;
+			buff = as<pointer>malloc(this.length * VARSIZE);
+		}
+
+		var curr = this.first;
+		for(var i = 0; curr != null && i < max; i++)
+		{
+			buff[i] = curr.value;
+			curr = curr.next;
+		}
+
+		return buff;
+	}
+};
