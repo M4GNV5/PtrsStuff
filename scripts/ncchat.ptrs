@@ -1,17 +1,18 @@
 var port = 3112;
 var maxClients = 16;
 
-import "usleep", "memset", "strdup", "strcpy", "sprintf", "printf", "free";
-import "SocketServer" from "../libs/network.ptrs";
+import usleep, memset, strdup, strcpy, sprintf, printf, free;
+import SocketServer from "../libs/network.ptrs";
 
 var server = new SocketServer(port);
 var len = VARSIZE * maxClients;
-var clients{maxClients};
-var nicks{maxClients};
-var antiSpam{maxClients};
+var clients[maxClients];
+var nicks[maxClients];
+var antiSpam[maxClients];
 memset(clients, 0, len);
 memset(nicks, 0, len);
 
+var broadcast;
 function removeClient(index)
 {
 	if(clients[index])
@@ -30,7 +31,7 @@ function removeClient(index)
 
 function broadcast(nick, splitter, msg)
 {
-	var buff[512];
+	var buff{512};
 
 	var len = sprintf(buff, "%-10.10s %c %s\n", nick, splitter, msg);
 	printf("%s", buff);
@@ -64,7 +65,7 @@ while(true)
 			{
 				if(sock.available())
 				{
-					var buff[256];
+					var buff{256};
 					var count = sock.read(buff, 255, '\n');
 					buff[count - 1] = 0;
 					var splitter = ':';
@@ -88,7 +89,7 @@ while(true)
 
 					if(!nicks[i])
 					{
-						nicks[i] = cast<native>strdup(buff);
+						nicks[i] = as<native>strdup(buff);
 						strcpy(buff, "joined");
 						splitter = '-';
 					}
