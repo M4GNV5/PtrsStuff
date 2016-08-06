@@ -29,8 +29,8 @@ printf("\n");
 
 
 var list = new List();
-list.push("ahoi", 666, "yar har", 42, 31.12);
-list.unshift(13, 37);
+list.add("ahoi", 666, "yar har", 42, 31.12);
+list.insert(0, 13, 37);
 
 foreach(val, i in list)
 {

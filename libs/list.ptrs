@@ -44,9 +44,10 @@ struct List
 		var curr = this.first;
 		while(curr != null)
 		{
+			var next = curr.next;
 			if(yield curr.value, i++, &curr.value)
 				return;
-			curr = curr.next;
+			curr = next;
 		}
 	}
 
@@ -69,7 +70,7 @@ struct List
 		return curr;
 	}
 
-	push(values...)
+	add(values...)
 	{
 		for(var i = 0; i < sizeof(values); i++)
 		{
@@ -83,21 +84,6 @@ struct List
 		}
 		this.length += sizeof(values);
 	}
-	unshift(values...)
-	{
-		if(sizeof(values) > 0)
-		{
-			var start = this.first;
-			var prev = this.first = new ListEntry(values[0]);
-			for(var i = 1; i < sizeof(values); i++)
-			{
-				prev.next = new ListEntry(values[i]);
-				prev = prev.next;
-			}
-			prev.next = start;
-			this.length += sizeof(values);
-		}
-	}
 	insert(index, value)
 	{
 		var prev;
@@ -109,6 +95,21 @@ struct List
 		else
 			prev.next = entry;
 		this.length++;
+	}
+	
+	remove(index)
+	{
+		var prev;
+		var curr = this.getEntry(index, &prev);
+		var val = curr.value;
+		
+		if(prev == null)
+			this.first = curr.next;
+		else
+			prev.next = curr.next;
+			
+		delete curr;
+		return val;
 	}
 
 	splice(index, deleteCount, insert...)
