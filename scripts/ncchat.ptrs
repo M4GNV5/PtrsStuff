@@ -1,127 +1,120 @@
-var port = 3112;
-var maxClients = 16;
-
-import usleep, memset, strdup, strcpy, sprintf, printf, free;
+import usleep, strdup, strcpy, sprintf, printf, free;
 import SocketServer from "../libs/network.ptrs";
+import List from "../libs/list.ptrs";
 
+var port = 3112;
+var clients = new List();
 var server = new SocketServer(port);
-var len = VARSIZE * maxClients;
-var clients[maxClients];
-var nicks[maxClients];
-var antiSpam[maxClients];
-memset(clients, 0, len);
-memset(nicks, 0, len);
-
 var broadcast;
-function removeClient(index)
+
+struct Client
 {
-	if(clients[index])
+	nick{16};
+	socket;
+	antiSpam = 0;
+	
+	destructor()
 	{
-		clients[index].disconnect();
-		free(clients[index]);
-		clients[index] = NULL;
+		if(this.socket)
+			this.socket.disconnect();
+			
+		broadcast(this.nick, '-', "left");
 	}
-	if(nicks[index])
-	{
-		broadcast(nicks[index], '-', "left");
-		free(nicks[index]);
-		nicks[index] = NULL;
-	}
-}
+};
 
 function broadcast(nick, splitter, msg)
 {
 	var buff{512};
-
-	var len = sprintf(buff, "%-10.10s %c %s\n", nick, splitter, msg);
+	sprintf(buff, "%-10.10s %c %s\n", nick, splitter, msg);
 	printf("%s", buff);
 
-	for(var i = 0; i < maxClients; i++)
+	foreach(client, i in clients)
 	{
 		try
 		{
-			if(clients[i] && nicks[i])
-				clients[i].send(buff, len);
+			if(client.nick[0] != 1)
+				client.socket.sends(buff);
 		}
 		catch(e)
 		{
 			printf("/!\\ %s\n", e);
-			removeClient(i);
+			delete clients.remove(i);
 		}
 	}
 }
 
 while(true)
 {
-	for(var i = 0; i < maxClients; i++)
+	foreach(client, i in clients)
 	{
-		if(clients[i])
+		if(client.antiSpam > 0)
+			client.antiSpam--;
+
+		var sock = client.socket;
+		try
 		{
-			if(antiSpam[i] > 0)
-				antiSpam[i]--;
-
-			var sock = clients[i];
-			try
+			if(sock.available())
 			{
-				if(sock.available())
+				var buff{256};
+				var count = sock.read(buff, 255, '\n');
+				buff[count - 1] = 0;
+				var splitter = ':';
+				printf("%s\n", buff);
+
+				var spaceOnly = true;
+				for(var j = 0; j < count - 1; j++)
 				{
-					var buff{256};
-					var count = sock.read(buff, 255, '\n');
-					buff[count - 1] = 0;
-					var splitter = ':';
+					if(buff[j] != ' ')
+						spaceOnly = false;
 
-					var spaceOnly = true;
-					for(var j = 0; j < count - 1; j++)
+					if(buff[j] < 32 || buff[j] > 126)
 					{
-						if(buff[j] != ' ')
-							spaceOnly = false;
-
-						if(buff[j] < 32 || buff[j] > 126)
-						{
-							strcpy(buff, "me=idiot");
-							break;
-						}
+						strcpy(buff, "me=idiot");
+						break;
 					}
-
-					antiSpam[i] += 10;
-					if(spaceOnly || antiSpam[i] > 19)
-						continue;
-
-					if(!nicks[i])
-					{
-						nicks[i] = as<native>strdup(buff);
-						strcpy(buff, "joined");
-						splitter = '-';
-					}
-					broadcast(nicks[i], splitter, buff);
 				}
-			}
-			catch(e)
-			{
-				printf("/!\\ %s\n", e);
-				removeClient(i);
+
+				client.antiSpam += 10;
+				if(spaceOnly || client.antiSpam > 19)
+					continue;
+
+				if(client.nick[0] == 1)
+				{
+					buff[15] = 0;
+					strcpy(client.nick, buff, 16);
+					strcpy(buff, "joined");
+					splitter = '-';
+				}
+				broadcast(client.nick, splitter, buff);
 			}
 		}
-		else
+		catch(e)
 		{
-			clients[i] = server.accept();
-			antiSpam[i] = 0;
-			if(clients[i])
-			{
-				var sock = clients[i];
-				sock.sends("Welcome to this simple chat written in PointerScript\n");
-				sock.sends("You can read the source at http://bit.ly/1XaCDlz\nCurrently online: ");
-				for(var j = 0; j < maxClients; j++)
-				{
-					if(clients[j] && nicks[j])
-					{
-						sock.sends(nicks[j]);
-						sock.sends(", ");
-					}
-				}
-				sock.sends("\nType your nickname: ");
-			}
+			printf("/!\\ %s\n", e);
+			delete clients.remove(i);
 		}
 	}
+	
+	var sock = server.accept();
+	if(sock)
+	{
+		var client = new Client();
+		client.nick[0] = 1;
+		client.socket = sock;
+
+		sock.sends("Welcome to this simple chat written in PointerScript\n");
+		sock.sends("You can read the source at http://bit.ly/1XaCDlz\nCurrently online: ");
+		foreach(c in clients)
+		{
+			if(c.nick[0] != 1)
+			{
+				sock.sends(c.nick);
+				sock.sends(", ");
+			}
+		}
+		sock.sends("\nType your nickname: ");
+		clients.add(client);
+	}
+	
 	usleep(100000);
 }
