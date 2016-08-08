@@ -136,14 +136,16 @@ struct List
 		}
 		return -1;
 	}
-	lastIndexOf(value, start = 0, compare = (a, b) -> a == b)
+	lastIndexOf(value, end, compare = (a, b) -> a == b)
 	{
 		var last = -1;
-		var curr = this.getEntry(start);
+		var curr = this.first;
 		for(var i = 0; curr != null; i++)
 		{
 			if(compare(curr.value, value, i))
 				last = i;
+			if(end && i >= end)
+				break;
 			curr = curr.next;
 		}
 		return last;
