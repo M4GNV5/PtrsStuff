@@ -84,18 +84,6 @@ struct List
 		}
 		this.length += sizeof(values);
 	}
-	insert(index, value)
-	{
-		var prev;
-		var curr = this.getEntry(index, &prev);
-		var entry = new ListEntry(value, curr);
-
-		if(prev == null)
-			this.first = entry;
-		else
-			prev.next = entry;
-		this.length++;
-	}
 	
 	remove(index)
 	{

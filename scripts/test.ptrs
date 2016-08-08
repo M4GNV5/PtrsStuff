@@ -30,7 +30,7 @@ printf("\n");
 
 var list = new List();
 list.add("ahoi", 666, "yar har", 42, 31.12);
-list.insert(0, 13, 37);
+list.splice(0, 0, 13, 37);
 
 foreach(val, i in list)
 {
