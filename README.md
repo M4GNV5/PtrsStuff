@@ -5,7 +5,7 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 ## Scripts
 - `ncchat.ptrs`: Chat server you can connect to using netcat
 - `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
-- `test.ptrs`: small test script for console, json and network libraries
+- `test.ptrs`: small test script for map, list, json and http libraries
 - `ircbot.ptrs`: A very basic IRC Bot that can advertise himself
 - `munchkin.ptrs`: IRC bot to play Munchkin Loot Letters
 
@@ -21,6 +21,26 @@ struct Map
 
 	has(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
+}
+```
+
+- `list.ptrs`
+```C
+struct List
+{
+	operator this[key];
+	
+	add(values...); //add values to the list
+	remove(index); //remove a value from the lsit and return it
+	splice(index, removeCount, insert...); //remove and/or add multiple values
+	
+	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
+	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
+	
+	//create a new List from an array. This can be used without an instance e.g. List.fromArray([1, 2, 3]);
+	fromArray(buff, length = sizeof(buff));
+	//write the entries of a list to the array. Returns a malloc'ed array if 'buff' is NULL or undefined
+	toArray(buff, max);
 }
 ```
 
