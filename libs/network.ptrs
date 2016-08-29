@@ -1,4 +1,4 @@
-import malloc, free, strlen, sprintf, usleep, printf;
+import memcpy, strlen, sprintf, usleep;
 import SDL_Init, SDLNet_Init,
 	SDLNet_ResolveHost, SDLNet_TCP_GetPeerAddress, SDLNet_TCP_Open, SDLNet_TCP_Close,
  	SDLNet_TCP_Send, SDLNet_TCP_Recv, SDL_GetError, SDLNet_TCP_Accept,
@@ -14,7 +14,7 @@ if(SDLNet_Init() == -1)
 
 struct Socket
 {
-	ip;
+	ip{8};
 	socket;
 	isServer;
 	socketset;
@@ -37,7 +37,6 @@ struct Socket
 		if(this.connected)
 			throw "Already connected";
 
-		this.ip = malloc(64);
 		SDLNet_ResolveHost(this.ip, domain, port);
 
 		this.socket = SDLNet_TCP_Open(this.ip);
@@ -56,8 +55,6 @@ struct Socket
 			throw "Not connected";
 
 		SDLNet_TCP_Close(this.socket);
-		if(!this.isServer)
-			free(this.ip);
 		this.connected = false;
 
 		if(this.socketset)
@@ -66,9 +63,6 @@ struct Socket
 
 	getIp(buff, includePort)
 	{
-		if(!this.ip)
-			throw "Not connected";
-
 		var val = SDLNet_Read32(this.ip);
 
 		if(buff)
@@ -183,11 +177,10 @@ struct Socket
 
 struct SocketServer
 {
-	ip;
+	ip{8};
 	socket;
 	constructor(port)
 	{
-		this.ip = malloc(64);
 		if(SDLNet_ResolveHost(this.ip, NULL, port) == -1)
 			throw as<native>SDL_GetError() || "Could not start listening";
 
@@ -195,6 +188,13 @@ struct SocketServer
 
 		if(this.socket == NULL)
 			throw as<native>SDL_GetError() || "Could not connect to server";
+	}
+	destructor()
+	{
+		if(this.socket == NULL)
+			throw "Attempting to close a not opened server";
+
+		SDLNet_TCP_Close(this.socket);
 	}
 
 	accept(checkInterval, createSet)
@@ -207,7 +207,7 @@ struct SocketServer
 			{
 				var sock = new Socket();
 				sock.socket = rawSock;
-				sock.ip = SDLNet_TCP_GetPeerAddress(rawSock);
+				memcpy(sock.ip, SDLNet_TCP_GetPeerAddress(rawSock), 6);
 				sock.isServer = true;
 				sock.connected = true;
 				if(createSet || typeof createSet == type<undefined>)
@@ -220,15 +220,5 @@ struct SocketServer
 			else
 				return false;
 		}
-	}
-
-	close()
-	{
-		if(this.socket == NULL)
-			throw "Attempting to close a not opened server";
-
-		SDLNet_TCP_Close(this.socket);
-		free(this.ip);
-		free(this);
 	}
 };
