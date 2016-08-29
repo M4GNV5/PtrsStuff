@@ -40,11 +40,11 @@ struct Map
 
 	operator this.key
 	{
-		return this.get(key);
+		return this.getValue(key);
 	}
 	operator this[key]
 	{
-		return this.get(key);
+		return this.getValue(key);
 	}
 	operator sizeof this
 	{
@@ -102,7 +102,7 @@ struct Map
 		return !!this.getEntry(key);
 	}
 
-	get(key)
+	getValue(key)
 	{
 		var entry = this.getEntry(key);
 		if(entry != null)
