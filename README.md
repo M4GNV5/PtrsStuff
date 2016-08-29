@@ -29,14 +29,14 @@ struct Map
 struct List
 {
 	operator this[key];
-	
+
 	add(values...); //add values to the list
 	remove(index); //remove a value from the lsit and return it
 	splice(index, removeCount, insert...); //remove and/or add multiple values
-	
+
 	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
 	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
-	
+
 	//create a new List from an array. This can be used without an instance e.g. List.fromArray([1, 2, 3]);
 	fromArray(buff, length = sizeof(buff));
 	//write the entries of a list to the array. Returns a malloc'ed array if 'buff' is NULL or undefined
@@ -96,7 +96,7 @@ struct Socket
 	getIp(buff, includePort);
 	getPort();
 
-	available(timeout); //check if data can be read
+	available(timeout); //check if data can be read (timeout in milliseconds)
 
 	send(buff, len);
 	sends(string);
@@ -119,7 +119,7 @@ struct SocketServer
 {
 	constructor(port); //starts listening on port 'port'
 
-	//checks if client is available every 'checkInterval' microseconds
+	//checks if client is available every 'checkInterval' milliseconds
 	//if 'checkInterval' <= 0 and no client is connecting it returns undefined
 	accept(checkInterval);
 
