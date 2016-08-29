@@ -84,18 +84,22 @@ struct List
 		}
 		this.length += sizeof(values);
 	}
-	
+
 	remove(index)
 	{
 		var prev;
 		var curr = this.getEntry(index, &prev);
 		var val = curr.value;
-		
+
 		if(prev == null)
 			this.first = curr.next;
 		else
 			prev.next = curr.next;
-			
+
+		if(this.first == null)
+			this.last = null;
+
+		this.length--;
 		delete curr;
 		return val;
 	}
