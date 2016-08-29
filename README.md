@@ -17,7 +17,7 @@ struct Map
 	//returns a pointer to a value that can be set/read
 	operator this.key;
 	operator this[key];
-	get(key);
+	getValue(key);
 
 	has(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
@@ -88,7 +88,9 @@ struct RegExp
 ```C
 struct Socket
 {
-	constructor(host, port, createSet);
+	//create a new socket connecting to host:port
+	//if createSet is false the available() function will not work
+	constructor(host, port, createSet = true);
 	disconnect();
 
 	//returns the integer representation of the ip
@@ -97,7 +99,7 @@ struct Socket
 	//returns the port
 	getPort();
 
-	available(timeout); //check if data can be read (timeout in milliseconds)
+	available(timeout = 0); //check if data can be read (timeout in milliseconds)
 
 	send(buff, len);
 	sends(string);
