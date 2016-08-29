@@ -7,11 +7,14 @@ struct IrcClient
 
 	constructor(host = "127.0.0.1", port = 6667, nick = "PointerScriptBot", realname = nick)
 	{
-		this.socket = new Socket();
-		this.socket.connect(host, port);
+		this.socket = new Socket(host, port);
 
 		this.sendRaw("NICK ", nick);
 		this.sendRaw("USER ", nick, " 42 answer :", realname);
+	}
+	destructor()
+	{
+		delete this.socket;
 	}
 
 	join(channel)
@@ -57,13 +60,6 @@ struct IrcClient
 				}
 			}
 		}
-	}
-
-	operator delete ()
-	{
-		if(this.socket.connected)
-			this.socket.disconnect();
-		delete this.socket;
 	}
 
 	sendRaw(args...)

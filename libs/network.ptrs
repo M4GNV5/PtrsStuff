@@ -19,25 +19,9 @@ struct Socket
 	isServer;
 	socketset;
 	connected;
-	constructor()
+	constructor(host, port, createSet = true)
 	{
-		this.connected = false;
-		this.socket = NULL;
-		this.isServer = false;
-		this.socketset = NULL;
-	}
-	destructor()
-	{
-		if(this.connected)
-			this.disconnect();
-	}
-
-	connect(domain, port, createSet)
-	{
-		if(this.connected)
-			throw "Already connected";
-
-		SDLNet_ResolveHost(this.ip, domain, port);
+		SDLNet_ResolveHost(this.ip, host, port);
 
 		this.socket = SDLNet_TCP_Open(this.ip);
 
@@ -46,9 +30,17 @@ struct Socket
 
 		this.connected = true;
 
-		if(createSet || typeof createSet == type<undefined>)
+		if(createSet)
 			this.createSet();
+		else
+			this.socketset = NULL;
 	}
+	destructor()
+	{
+		if(this.connected)
+			this.disconnect();
+	}
+
 	disconnect()
 	{
 		if(!this.connected)
@@ -91,12 +83,11 @@ struct Socket
 		if(SDLNet_AddSocket(this.socketset, this.socket) == -1)
 			throw as<native>SDL_GetError() || "Could not create SocketSet";
 	}
-	available(timeout)
+	available(timeout = 0)
 	{
 		if(!this.connected)
 			return false;
 
-		timeout = timeout || 0;
 		var ready = SDLNet_CheckSockets(this.socketset, timeout);
 		if(ready < 0 || ready > INT_MAX)
 			throw as<native>SDL_GetError() || "Could not check availability";
@@ -142,29 +133,15 @@ struct Socket
 		this.recv(buff, 1);
 		return *buff;
 	}
-	read(buff, max, end)
+	read(buff, max, end = 0, awaitData = true)
 	{
 		var pos = 1;
-		var err;
 		var curr{1};
 
 		this.recv(curr, 1);
 		buff[0] = *curr;
 
-		while(*curr != end && pos < max)
-		{
-			if(!this.recv(curr, 1))
-				return pos;
-			buff[pos] = *curr;
-			pos++;
-		}
-		return pos;
-	}
-	readAvailable(buff, max)
-	{
-		var pos = 0;
-		var curr[1];
-		while(this.available() && pos < max)
+		while(*curr != end && pos < max && (awaitData || this.available()))
 		{
 			if(!this.recv(curr, 1))
 				return pos;

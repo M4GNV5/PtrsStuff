@@ -88,12 +88,13 @@ struct RegExp
 ```C
 struct Socket
 {
-	connect(host, port);
+	constructor(host, port, createSet);
 	disconnect();
 
 	//returns the integer representation of the ip
 	//writes the string representation of the ip to buff optionally including the port
 	getIp(buff, includePort);
+	//returns the port
 	getPort();
 
 	available(timeout); //check if data can be read (timeout in milliseconds)
@@ -106,13 +107,12 @@ struct Socket
 
 	readc(); //receive one byte
 
-	//read bytes into buff until 'end' byte is read or 'max' bytes were read
+	//read bytes into buff until:
+	//	- 'end' byte is read
+	//	- 'max' bytes were read
+	//	- 'awaitData' is false and no more data is available
 	//returns count of bytes read
-	read(buff, max, end);
-
-	//read bytes into buff until no data is available or max bytes were read
-	//returns count of bytes read
-	readAvailable(buff, max);
+	read(buff, max, end, awaitData = true);
 }
 
 struct SocketServer

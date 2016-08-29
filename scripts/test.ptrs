@@ -58,8 +58,8 @@ instance.bar = 3112;
 instance.somekey = "Hello World!";
 instance.nested = new Test();
 
-var str = json_encode(instance);
-printf("%s\n\n", str);
+/*var str = json_encode(instance);
+printf("%s\n\n", str);*/
 
 function dumpMap(map, indent = 0)
 {
@@ -79,12 +79,12 @@ function dumpMap(map, indent = 0)
 		}
 	}
 }
-dumpMap(json_decode(str));
-printf("\n");
+/*dumpMap(json_decode(str));
+printf("\n");*/
 
 
 
-function dumpMatches(reg, str)
+/*function dumpMatches(reg, str)
 {
 	var matches = reg.match(str);
 	printf("For string %s\n", str);
@@ -102,7 +102,7 @@ var reg = new RegExp("a?(b+)x{3}", true);
 dumpMatches(reg, "abbxxx");
 dumpMatches(reg, "aaaaaabbbbbxx");
 dumpMatches(reg, "bbaabbbbbxxx");
-printf("\n");
+printf("\n");*/
 
 
 

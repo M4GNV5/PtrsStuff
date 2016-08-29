@@ -51,7 +51,7 @@ struct HttpResponse
 		var timesRead = 0;
 		while(count == 1024)
 		{
-			count = sock.readAvailable(buff, 1024);
+			count = sock.read(buff, 1024, 0, false);
 			this.content = as<native>realloc(this.content, timesRead * 1024 + count + 1);
 			memcpy(this.content + timesRead * 1024, buff, count);
 			timesRead++;
@@ -69,8 +69,7 @@ function http_get(url, port = 80)
 	strcpy(buff, url + 7);
 	*as<native>strchr(buff, '/') = 0;
 
-	var sock = new Socket();
-	sock.connect(buff, port);
+	var sock = new Socket(buff, port);
 	sock.sends("GET %s HTTP/1.0\r\n\r\n" % strchr(url + 7, '/'));
 
 	var resp = new HttpResponse();
