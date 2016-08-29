@@ -64,10 +64,8 @@ struct IrcClient
 
 	sendRaw(args...)
 	{
-		while(*args != null)
-		{
-			this.socket.sends(*args++);
-		}
+		for(var i = 0; i < sizeof args; i++)
+			this.socket.sends(args[i]);
 
 		this.socket.sends("\r\n");
 	}
