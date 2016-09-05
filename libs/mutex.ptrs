@@ -1,0 +1,59 @@
+import pthread_mutex_init as mutex_init,
+	pthread_mutex_lock as mutex_lock,
+	pthread_mutex_unlock as mutex_unlock,
+	pthread_mutex_destroy as mutex_destroy,
+	pthread_self from "libpthread.so.0";
+import Map from "./map.ptrs";
+import printf;
+
+struct MutexWrap
+{
+	private wrap;
+	private functions;
+	mutex{1024};
+
+	constructor(obj)
+	{
+		wrap = obj;
+		functions = new Map();
+		mutex_init(mutex, NULL);
+	}
+	destructor()
+	{
+		delete functions;
+		mutex_destroy(mutex);
+	}
+
+	private functionWrap(args...)
+	{
+		mutex_lock(mutex);
+
+		var self = pthread_self();
+		var func = *functions[self];
+
+		var val = func(...args);
+
+		mutex_unlock(mutex);
+		return val;
+	}
+
+	operator this.key
+	{
+		return this[key];
+	}
+	operator this[key]
+	{
+		mutex_lock(mutex);
+
+		var val = wrap[key];
+		if(typeof val == type<function>)
+		{
+			var self = pthread_self();
+			*functions[self] = val;
+			val = functionWrap;
+		}
+
+		mutex_unlock(mutex);
+		return val;
+	}
+};
