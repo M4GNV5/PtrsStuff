@@ -158,8 +158,8 @@ struct List
 	fromArray(buff, len = sizeof(buff))
 	{
 		var list = new List();
-		for(var i = 0; i < len; i++)
-			list.push(buff[i]);
+		var subset = buff[0 .. len];
+		list.add(...subset);
 
 		return list;
 	}
