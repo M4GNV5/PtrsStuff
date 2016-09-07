@@ -17,13 +17,18 @@ struct MapEntry
 
 struct Map
 {
+	private length = 0;
 	first = null;
-	length = 0;
-	newEntry;
+	useThrow;
 
-	constructor()
+	get count
 	{
-		this.newEntry = new MapEntry();
+		return length;
+	}
+
+	constructor(useThrow = true)
+	{
+		this.useThrow = useThrow;
 	}
 	destructor()
 	{
@@ -34,48 +39,10 @@ struct Map
 			curr = curr.next;
 			delete _curr;
 		}
-
-		delete this.newEntry;
 	}
 
-	operator this.key
+	private getEntry(key, previous = null)
 	{
-		return this.getValue(key);
-	}
-	operator this[key]
-	{
-		return this.getValue(key);
-	}
-	operator sizeof this
-	{
-		return this.length;
-	}
-	operator in this
-	{
-		this.appendNewEntry();
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(yield curr.key, curr.value, &curr.value)
-				return;
-			curr = curr.next;
-		}
-	}
-
-	appendNewEntry()
-	{
-		if(typeof this.newEntry.value != type<undefined>)
-		{
-			this.newEntry.next = this.first;
-			this.first = this.newEntry;
-			this.newEntry = new MapEntry();
-		}
-	}
-
-	getEntry(key, previous = null)
-	{
-		this.appendNewEntry();
-
 		key = cast<native>key;
 		var prev = null;
 		var curr = this.first;
@@ -97,33 +64,54 @@ struct Map
 		return null;
 	}
 
-	has(key)
-	{
-		return !!this.getEntry(key);
-	}
-
 	getValue(key)
 	{
-		var entry = this.getEntry(key);
-		if(entry != null)
+		var entry = getEntry(key);
+
+		if(entry == null)
 		{
-			return &entry.value;
+			if(useThrow)
+				throw "Trying to get key '%s' which is not in this map" % key;
+			return undefined;
+		}
+
+		return entry.value;
+	}
+
+	setValue(key, val)
+	{
+		var prev = null;
+		var entry = getEntry(key, &prev);
+
+		if(entry == null)
+		{
+			if(prev == null)
+				this.first = new MapEntry(key, val);
+			else
+				prev.next = new MapEntry(key, val);
+
+			length++;
 		}
 		else
 		{
-			strncpy(this.newEntry.key, cast<native>key, 31);
-			this.newEntry.key[31] = 0;
-			return &this.newEntry.value;
+			entry.value = val;
 		}
+	}
+
+	has(key)
+	{
+		return !!getEntry(key);
 	}
 
 	remove(key)
 	{
 		var prev;
-		var entry = this.getEntry(key, &prev);
+		var entry = getEntry(key, &prev);
 		if(entry == null)
 		{
-			throw "Cannot remove non exisiting key '%s'" % key;
+			if(useThrow)
+				throw "Cannot remove non exisiting key '%s'" % key;
+			return undefined;
 		}
 		else
 		{
@@ -132,10 +120,43 @@ struct Map
 			else
 				prev.next = entry.next;
 
-			this.length--;
+			length--;
 			var val = entry.value;
 			delete entry;
 			return val;
+		}
+	}
+
+	operator this.key
+	{
+		return getValue(key);
+	}
+	operator this[key]
+	{
+		return getValue(key);
+	}
+
+	operator this.key = val
+	{
+		setValue(key, val);
+	}
+	operator this[key] = val
+	{
+		setValue(key, val);
+	}
+
+	operator sizeof this
+	{
+		return this.length;
+	}
+	operator in this
+	{
+		var curr = this.first;
+		while(curr != null)
+		{
+			if(yield curr.key, curr.value, &curr.value)
+				return;
+			curr = curr.next;
 		}
 	}
 };

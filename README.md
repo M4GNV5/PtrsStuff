@@ -14,13 +14,23 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 ```C
 struct Map
 {
-	//returns a pointer to a value that can be set/read
-	operator this.key;
-	operator this[key];
-	getValue(key);
+	//if useThrow is true getValue and remove will throw an exception if the key does not exist
+	constructor(useThrow = true);
 
+	get count; //getter returning the count of key/value pairs in the map
+
+	getValue(key); //get a value from the map
+	setValue(key, val); //set a value in the map (adding a new entry if it does not exist)
 	has(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
+
+	operator this.key; //same as getValue(key);
+	operator this[key]; //same as getValue(key);
+	operator this.key = val; //same as setValue(key, val);
+	operator this[key] = val; //same as setValue(key, val);
+
+	operator sizeof this; //same as Map.count
+	operator in this; //iterate over the list (yields key, value, &value)
 }
 ```
 

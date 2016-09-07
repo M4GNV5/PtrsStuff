@@ -32,7 +32,7 @@ function dumpValue(map, indent = 0)
 			for(var i = 0; i < indent; i++)
 				printf(" ");
 
-			if((val instanceof Map) || (val instanceof List))
+			if(val instanceof Map || val instanceof List)
 			{
 				printf("%*d:\n", indent - 32, i);
 				dumpValue(val, indent + 4);
@@ -58,17 +58,24 @@ function testMap()
 	var map = new Map();
 	function tryGet(key)
 	{
-		printf("map[%s] = %s\n", cast<native>key, cast<native>*map[key]);
+		try
+		{
+			printf("map[%s] = %s\n", cast<native>key, cast<native>map[key]);
+		}
+		catch(err, trace)
+		{
+			printf("%s\n%s", err, trace);
+		}
 	}
-	*map.foo = 42;
+	map.foo = 42;
 	tryGet("foo");
-	*map.foo = 1337;
+	map.foo = 1337;
 	tryGet("foo");
 	map.remove("foo");
 	tryGet("foo");
 
-	*map.bar = 31.12;
-	*map[42] = map;
+	map.bar = 31.12;
+	map[42] = map;
 	tryGet("bar");
 	tryGet(42);
 	tryGet("42");
