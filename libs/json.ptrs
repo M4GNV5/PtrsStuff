@@ -1,4 +1,4 @@
-import sprintf, strlen, malloc, strdup, free, strncmp, strtod;
+import sprintf, strncpy, strlen, malloc, strdup, free, strncmp, strtod;
 import Map from "./map.ptrs";
 import List from "./list.ptrs";
 
@@ -119,16 +119,28 @@ function json_decode(str)
 		while(*str == ' ' || *str == '\t' || *str == '\n')
 			str++;
 	}
-	function parseString()
+	function parseString(buff, max)
 	{
 		if(*str++ != '"')
 			throw "Invalid JSON, expected \" got %c" % *--str;
 
 		var ptr = str;
-		while(*str != '"') //TODO escape sequences
+		while(*str != '"')
 			str++;
-		*str++ = 0;
-		return ptr;
+
+		var len = str - ptr;
+		max = max || len;
+
+		if(!buff)
+			buff = as<native>malloc(len + 1);
+		if(max < len)
+			len = max - 1;
+
+		strncpy(buff, ptr, len);
+		buff[len] = 0;
+
+		str++;
+		return buff;
 	}
 	function parseValue()
 	{
@@ -200,10 +212,11 @@ function json_decode(str)
 			return map;
 		}
 
+		var key{32};
 		while(true)
 		{
 			skipSpaces();
-			var key = parseString();
+			parseString(key);
 			skipSpaces();
 
 			if(*str++ != ':')
@@ -226,4 +239,26 @@ function json_decode(str)
 	}
 
 	return parseValue();
+}
+
+function json_destroy(value)
+{
+	if(value instanceof Map)
+	{
+		foreach(key, val in value)
+			json_destroy(val);
+
+		delete value;
+	}
+	else if(value instanceof List)
+	{
+		foreach(val in value)
+			json_destroy(val);
+
+		delete value;
+	}
+	else if(typeof value == type<native>)
+	{
+		free(value);
+	}
 }

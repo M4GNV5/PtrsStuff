@@ -2,7 +2,7 @@ import printf, free, strcmp;
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
 import RegExp from "../libs/regexp.ptrs";
-import json_encode, json_decode from "../libs/json.ptrs";
+import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
 
 function dumpValue(map, indent = 0)
@@ -109,19 +109,21 @@ function testJson()
 	};
 
 	var instance : Test();
+	var nested : Test();
 	instance.foo = 31.12;
 	instance.bar = List.fromArray([42, "yar har", 3.1415, "fiddlededi"]);
 	instance.somekey = "Hello World!";
-	instance.nested = new Test();
+	instance.nested = nested;
 
 	var str = json_encode(instance);
 	printf("%s\n\n", str);
 
-	dumpValue(json_decode(str));
+	var obj = json_decode(str);
+	dumpValue(obj);
 	printf("\n");
 
 	free(str);
-	delete instance.nested;
+	json_destroy(obj);
 }
 
 function testRegExp()
