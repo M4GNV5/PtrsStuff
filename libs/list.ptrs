@@ -16,7 +16,7 @@ struct List
 {
 	first = null;
 	last = null;
-	length = 0;
+	private _length = 0;
 
 	destructor()
 	{
@@ -36,7 +36,7 @@ struct List
 	}
 	operator sizeof this
 	{
-		return this.length;
+		return _length;
 	}
 	operator in this
 	{
@@ -51,6 +51,11 @@ struct List
 		}
 	}
 
+	get length
+	{
+		return _length;
+	}
+
 	getEntry(index, previous = null)
 	{
 		var prev = null;
@@ -63,7 +68,7 @@ struct List
 		}
 
 		if(curr == null)
-			throw "Index %d is not in list of length %d" % index, this.length;
+			throw "Index %d is not in list of length %d" % index, _length;
 
 		if(previous != null)
 			*previous = prev;
@@ -82,7 +87,7 @@ struct List
 				this.last.next = entry;
 			this.last = entry;
 		}
-		this.length += sizeof(values);
+		_length += sizeof(values);
 	}
 
 	remove(index)
@@ -99,7 +104,7 @@ struct List
 		if(this.first == null)
 			this.last = null;
 
-		this.length--;
+		_length--;
 		delete curr;
 		return val;
 	}
@@ -115,13 +120,13 @@ struct List
 			curr = curr.next;
 			delete old;
 		}
-		this.length -= deleteCount;
+		_length -= deleteCount;
 
 		for(var i = 0; i < sizeof(insert); i++)
 		{
 			curr = new ListEntry(insert[i], curr);
 		}
-		this.length += sizeof(insert);
+		_length += sizeof(insert);
 
 		if(prev == null)
 			this.first = curr;
@@ -166,11 +171,11 @@ struct List
 	toArray(buff, max)
 	{
 		if(!max)
-			max = buff ? sizeof buff : this.length;
+			max = buff ? sizeof buff : _length;
 		if(!buff)
 		{
-			max = this.length;
-			buff = as<pointer>malloc(this.length * VARSIZE);
+			max = _length;
+			buff = as<pointer>malloc(_length * VARSIZE);
 		}
 
 		var curr = this.first;

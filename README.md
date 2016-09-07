@@ -28,7 +28,11 @@ struct Map
 ```C
 struct List
 {
-	operator this[key];
+	get length; //current length of the list
+	operator sizeof this;
+
+	operator this[index]; //get a pointer to the value at index
+	operator in this; //iterate over the list (yields value, index, &value)
 
 	add(values...); //add values to the list
 	remove(index); //remove a value from the lsit and return it
