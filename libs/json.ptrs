@@ -1,5 +1,6 @@
 import sprintf, strlen, malloc, strdup, free, strncmp, strtol;
 import Map from "./map.ptrs";
+import List from "./list.ptrs";
 
 function json_encode(val)
 {
@@ -21,14 +22,14 @@ function json_encode(val)
 				escapeCount++;
 		}
 
-		var buff = as<native>malloc(3 + len + 3 * escapeCount);
+		var buff = as<native>malloc(3 + len + 5 * escapeCount);
 		var buffptr = buff;
 		*buffptr++ = '"';
 
 		for(var i = 0; i < len; i++)
 		{
 			if(val[i] < ' ' || val[i] > '~')
-				buffptr += sprintf(buffptr, "\\x%hhX", val[i]);
+				buffptr += sprintf(buffptr, "\\u00%hhX", val[i]);
 			else
 				*buffptr++ = val[i];
 		}
@@ -37,7 +38,37 @@ function json_encode(val)
 		*buffptr = 0;
 		return as<native>strdup(buff);
 	}
-	if(typeof val == type<struct>)
+	else if(val instanceof List)
+	{
+		var array[val.length];
+		val.toArray(array);
+		return json_encode(array);
+	}
+	else if(typeof val == type<pointer> && sizeof val > 0)
+	{
+		var len = 1;
+		var strings[sizeof val];
+		for(var i = 0; i < sizeof val; i++)
+		{
+			strings[i] = json_encode(val[i]);
+			len += strlen(strings[i]) + 1;
+		}
+
+		var buff = as<native>malloc(len);
+		buff[0] = '[';
+		var buffptr = buff + 1;
+
+		for(var i = 0; i < sizeof val; i++)
+		{
+			buffptr += sprintf(buffptr, "%s,", strings[i]);
+			free(strings[i]);
+		}
+
+		*buffptr-- = 0;
+		*buffptr = ']';
+		return buff;
+	}
+	else if(typeof val == type<struct>)
 	{
 		var count = 0;
 		foreach(key in val)
@@ -67,8 +98,8 @@ function json_encode(val)
 			free(valueStrings[i]);
 		}
 
-		*--buffptr = '}';
-		buffptr[1] = 0;
+		*buffptr-- = 0;
+		*buffptr = '}';
 		return buff;
 	}
 	else
@@ -80,6 +111,7 @@ function json_encode(val)
 function json_decode(str)
 {
 	var map = new Map();
+	var parseArray;
 	var parseObject;
 
 	function skipSpaces()
@@ -93,7 +125,7 @@ function json_decode(str)
 			throw "Invalid JSON, expected \" got %c" % *--str;
 
 		var ptr = str;
-		while(*str != '"')
+		while(*str != '"') //TODO escape sequences
 			str++;
 		*str++ = 0;
 		return ptr;
@@ -102,9 +134,11 @@ function json_decode(str)
 	{
 		if(*str == '{')
 			return parseObject();
+		if(*str == '[')
+			return parseArray();
 		if(*str == '"')
 			return parseString();
-		if(*str >= '0' && *str <= '9')
+		if(*str >= '0' && *str <= '9') //TODO floats
 			return strtol(str, &str, 0);
 
 		if(strncmp(str, "null", 4) == 0)
@@ -115,15 +149,43 @@ function json_decode(str)
 		if(strncmp(str, "true", 4) == 0)
 		{
 			str += 4;
-			return undefined;
+			return true;
 		}
 		if(strncmp(str, "false", 5) == 0)
 		{
 			str += 5;
-			return undefined;
+			return false;
 		}
 
 		throw "Invalid JSON, expected value got %c" % *str;
+	}
+	function parseArray()
+	{
+		var list = new List();
+
+		if(*str++ != '[')
+			throw "Invalid JSON, expected [ got %c" % *--str;
+
+		if(*str == ']')
+		{
+			str++;
+			return list;
+		}
+
+		while(true)
+		{
+			skipSpaces();
+			list.add(parseValue());
+			skipSpaces();
+
+			if(*str == ']')
+				break;
+			if(*str++ != ',')
+				throw "Invalid JSON, expected , got %c" % *--str;
+		}
+
+		str++;
+		return list;
 	}
 	function parseObject()
 	{

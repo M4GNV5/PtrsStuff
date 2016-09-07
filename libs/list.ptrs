@@ -165,6 +165,8 @@ struct List
 	}
 	toArray(buff, max)
 	{
+		if(!max)
+			max = buff ? sizeof buff : this.length;
 		if(!buff)
 		{
 			max = this.length;
