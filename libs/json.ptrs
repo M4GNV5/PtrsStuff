@@ -210,7 +210,7 @@ function json_decode(str)
 				throw "Invalid JSON, expected : got %c" % *--str;
 
 			skipSpaces();
-			*map[key] = parseValue();
+			map[key] = parseValue();
 			skipSpaces();
 
 

@@ -44,7 +44,7 @@ struct HttpResponse
 
 			var dot = as<native>strchr(buff, ':');
 			*dot = 0;
-			*this.header[buff] = as<native>strdup(dot + 2);
+			this.header[buff] = as<native>strdup(dot + 2);
 		}
 
 		var count = 1024;
