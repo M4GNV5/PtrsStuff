@@ -1,113 +1,164 @@
-import printf, free;
+import printf, free, strcmp;
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
 
-var map = new Map();
-function tryGet(key)
+function dumpValue(map, indent = 0)
 {
-	printf("map[%s] = %s\n", cast<native>key, cast<native>*map[key]);
-}
-*map.foo = 42;
-tryGet("foo");
-*map.foo = 1337;
-tryGet("foo");
-map.remove("foo");
-tryGet("foo");
-
-*map.bar = 31.12;
-*map[42] = map;
-tryGet("bar");
-tryGet(42);
-tryGet("42");
-
-delete map;
-printf("\n");
-
-
-
-var list = new List();
-list.add("ahoi", 666, "yar har", 42, 31.12);
-list.splice(0, 0, 13, 37);
-
-foreach(val, i in list)
-{
-	printf("list[%d] = %s\n", i, cast<native>val);
-}
-printf("\n");
-
-
-
-struct Test
-{
-	foo = "ahoi";
-	bar = 666;
-	somekey = undefined;
-	nested = true;
-	someFunction()
+	if(map instanceof Map)
 	{
-		return 42;
+		foreach(key, val in map)
+		{
+			for(var i = 0; i < indent; i++)
+				printf(" ");
+
+			if((val instanceof Map) || (val instanceof List))
+			{
+				printf("%*s:\n", indent - 32,key);
+				dumpValue(val, indent + 4);
+			}
+			else
+			{
+				printf("%*s: %s\n", indent - 32, key, cast<native>val);
+			}
+		}
 	}
-};
+	else if(map instanceof List)
+	{
+		foreach(val, i in map)
+		{
+			for(var i = 0; i < indent; i++)
+				printf(" ");
 
-var instance : Test();
-instance.foo = 1337;
-instance.bar = 3112;
-instance.somekey = "Hello World!";
-instance.nested = new Test();
-
-/*var str = json_encode(instance);
-printf("%s\n\n", str);*/
-
-function dumpMap(map, indent = 0)
-{
-	foreach(key, val in map)
+			if((val instanceof Map) || (val instanceof List))
+			{
+				printf("%*d:\n", indent - 32, i);
+				dumpValue(val, indent + 4);
+			}
+			else
+			{
+				printf("%*d: %s\n", indent - 32, i, cast<native>val);
+			}
+		}
+	}
+	else
 	{
 		for(var i = 0; i < indent; i++)
 			printf(" ");
-
-		if(val instanceof Map)
-		{
-			printf("%*s:\n", indent - 32,key);
-			dumpMap(val, indent + 4);
-		}
-		else
-		{
-			printf("%*s: %s\n", indent - 32, key, cast<native>val);
-		}
+		printf("?????\n");
 	}
 }
-/*dumpMap(json_decode(str));
-printf("\n");*/
 
 
 
-/*function dumpMatches(reg, str)
+function testMap()
 {
-	var matches = reg.match(str);
-	printf("For string %s\n", str);
-
-	if(matches == null)
-		return printf("\tNo Match\n");
-
-	for(var i = 0; matches[i] != NULL; i++)
+	var map = new Map();
+	function tryGet(key)
 	{
-		printf("\tmatch %d: %s\n", i, matches[i]);
+		printf("map[%s] = %s\n", cast<native>key, cast<native>*map[key]);
 	}
-	free(matches);
+	*map.foo = 42;
+	tryGet("foo");
+	*map.foo = 1337;
+	tryGet("foo");
+	map.remove("foo");
+	tryGet("foo");
+
+	*map.bar = 31.12;
+	*map[42] = map;
+	tryGet("bar");
+	tryGet(42);
+	tryGet("42");
+
+	delete map;
 }
-var reg = new RegExp("a?(b+)x{3}", true);
-dumpMatches(reg, "abbxxx");
-dumpMatches(reg, "aaaaaabbbbbxx");
-dumpMatches(reg, "bbaabbbbbxxx");
-printf("\n");*/
 
+function testList()
+{
+	var list = new List();
+	list.add("ahoi", 666, "yar har", 42, 3112);
+	list.splice(0, 0, 13, 37);
 
+	dumpValue(list);
+	delete list;
+}
 
-var resp = http_get("http://m4gnus.de/");
-printf("Response Code: %d\nReponse Message: %s\n", resp.code, resp.message);
-dumpMap(resp.header);
-printf("Content:\n%s\n", resp.content);
-delete resp;
+function testJson()
+{
+	struct Test
+	{
+		foo = "ahoi";
+		bar = 666;
+		somekey = undefined;
+		nested = true;
+		someFunction()
+		{
+			return 42;
+		}
+	};
+
+	var instance : Test();
+	instance.foo = 1337;
+	instance.bar = List.fromArray([42, "yar har", 1337, "fiddlededi"]);
+	instance.somekey = "Hello World!";
+	instance.nested = new Test();
+
+	var str = json_encode(instance);
+	printf("%s\n\n", str);
+
+	dumpValue(json_decode(str));
+	printf("\n");
+
+	free(str);
+	delete instance.nested;
+}
+
+function testRegExp()
+{
+	function dumpMatches(reg, str)
+	{
+		var matches = reg.match(str);
+		printf("For string %s\n", str);
+
+		if(matches == null)
+			return printf("\tNo Match\n");
+
+		for(var i = 0; matches[i] != NULL; i++)
+		{
+			printf("\tmatch %d: %s\n", i, matches[i]);
+		}
+		free(matches);
+	}
+	var reg = new RegExp("a?(b+)x{3}", true);
+	dumpMatches(reg, "abbxxx");
+	dumpMatches(reg, "aaaaaabbbbbxx");
+	dumpMatches(reg, "bbaabbbbbxxx");
+	printf("\n");
+}
+
+function testHttp()
+{
+	var resp = http_get("http://m4gnus.de/");
+	printf("Response Code: %d\nReponse Message: %s\n", resp.code, resp.message);
+	dumpValue(resp.header);
+	printf("Content:\n%s\n", resp.content);
+	delete resp;
+}
+
+var test = arguments[0] || "usage";
+
+if(strcmp(test, "map") == 0)
+	testMap();
+else if(strcmp(test, "list") == 0)
+	testList();
+else if(strcmp(test, "json") == 0)
+	testJson();
+else if(strcmp(test, "regexp") == 0)
+	testRegExp();
+else if(strcmp(test, "http") == 0)
+	testHttp();
+else
+	printf("Usage: ptrs test.ptrs <testcase>\nTestcase can be one of map, list, json, regexp and http\n");
