@@ -1,4 +1,4 @@
-import sprintf, strlen, malloc, strdup, free, strncmp, strtol;
+import sprintf, strlen, malloc, strdup, free, strncmp, strtod;
 import Map from "./map.ptrs";
 import List from "./list.ptrs";
 
@@ -138,8 +138,8 @@ function json_decode(str)
 			return parseArray();
 		if(*str == '"')
 			return parseString();
-		if(*str >= '0' && *str <= '9') //TODO floats
-			return strtol(str, &str, 0);
+		if(*str >= '0' && *str <= '9')
+			return as<float>strtod(str, &str);
 
 		if(strncmp(str, "null", 4) == 0)
 		{

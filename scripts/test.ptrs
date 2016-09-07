@@ -101,8 +101,8 @@ function testJson()
 	};
 
 	var instance : Test();
-	instance.foo = 1337;
-	instance.bar = List.fromArray([42, "yar har", 1337, "fiddlededi"]);
+	instance.foo = 31.12;
+	instance.bar = List.fromArray([42, "yar har", 3.1415, "fiddlededi"]);
 	instance.somekey = "Hello World!";
 	instance.nested = new Test();
 
