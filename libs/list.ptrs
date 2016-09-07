@@ -31,9 +31,21 @@ struct List
 
 	operator this[index]
 	{
-		var val = this.getEntry(cast<int>index);
-		return &val.value;
+		index = cast<int>index;
+		return this.getEntry(cast<int>index).value;
 	}
+	operator this[index] = value
+	{
+		index = cast<int>index;
+		if(index < 0 || index > _length)
+			throw "Cannot set index %d of a list of length %d" % index, _length;
+
+		if(index == _length)
+			this.add(value);
+		else
+			this.getEntry(index).value = value;
+	}
+
 	operator sizeof this
 	{
 		return _length;

@@ -86,8 +86,9 @@ function testMap()
 function testList()
 {
 	var list = new List();
-	list.add("ahoi", 666, "yar har", 42, 3112);
-	list.splice(0, 0, 13, 37);
+	list.add("ahoi", 111, "yar har", 42, 3112);
+	list.splice(3, 1, 13, 37);
+	list[1] = list[1] * 6;
 
 	dumpValue(list);
 	delete list;
