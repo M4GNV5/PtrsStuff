@@ -110,7 +110,6 @@ function json_encode(val)
 
 function json_decode(str)
 {
-	var map = new Map();
 	var parseArray;
 	var parseObject;
 
@@ -131,7 +130,7 @@ function json_decode(str)
 		var len = str - ptr;
 		max = max || len;
 
-		if(!buff)
+		if(typeof buff == type<undefined>)
 			buff = as<native>malloc(len + 1);
 		if(max < len)
 			len = max - 1;
