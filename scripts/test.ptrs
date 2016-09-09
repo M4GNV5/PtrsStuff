@@ -4,6 +4,8 @@ import List from "../libs/list.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
+import MutexWrap from "../libs/mutex.ptrs";
+import pthread_create, pthread_join, pthread_self from "libpthread.so.0";
 
 function dumpValue(map, indent = 0)
 {
@@ -158,6 +160,41 @@ function testHttp()
 	delete resp;
 }
 
+function doStuff(val)
+{
+	val = *as<pointer>val;
+	var self = pthread_self();
+
+	printf("%llu trying...\n", self);
+	val.loop(self);
+	printf("%llu done!\n", self);
+}
+function testMutex()
+{
+	struct Test
+	{
+		loop(self)
+		{
+			printf("%llu in loop...\n", self);
+			for(var i = 0; i < 100000000; i++)
+				;
+		}
+	};
+
+	var val = new MutexWrap(new Test());
+	//var val = new Test();
+
+	var threads[] = [0, 0, 0, 0];
+	for(var i = 0; i < sizeof threads; i++)
+	{
+		pthread_create(threads + i, NULL, doStuff, &val);
+	}
+	for(var i = 0; i < sizeof threads; i++)
+	{
+		pthread_join(threads[i], NULL);
+	}
+}
+
 var test = arguments[0] || "usage";
 
 if(strcmp(test, "map") == 0)
@@ -170,5 +207,7 @@ else if(strcmp(test, "regexp") == 0)
 	testRegExp();
 else if(strcmp(test, "http") == 0)
 	testHttp();
+else if(strcmp(test, "mutex") == 0)
+	testMutex();
 else
 	printf("Usage: ptrs test.ptrs <testcase>\nTestcase can be one of map, list, json, regexp and http\n");
