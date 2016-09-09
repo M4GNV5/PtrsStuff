@@ -28,7 +28,7 @@ struct MutexWrap
 		mutex_lock(mutex);
 
 		var self = pthread_self();
-		var func = *functions[self];
+		var func = functions[self];
 
 		var val = func(...args);
 
@@ -48,11 +48,22 @@ struct MutexWrap
 		if(typeof val == type<function>)
 		{
 			var self = pthread_self();
-			*functions[self] = val;
+			functions[self] = val;
 			val = functionWrap;
 		}
 
 		mutex_unlock(mutex);
 		return val;
+	}
+
+	operator this.key = val
+	{
+		this[key] = val;
+	}
+	operator this[key] = val
+	{
+		mutex_lock(mutex);
+		wrap[key] = val;
+		mutex_unlock(mutex);
 	}
 };
