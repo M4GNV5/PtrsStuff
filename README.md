@@ -28,6 +28,8 @@ struct Map
 	operator this[key]; //same as getValue(key);
 	operator this.key = val; //same as setValue(key, val);
 	operator this[key] = val; //same as setValue(key, val);
+	operator this.key(args...); //same as getValue(key)(args...);
+	operator this[key](args...); //same as getValue(key)(args...);
 
 	operator sizeof this; //same as 'get count'
 	operator in this; //iterate over the list (yields key, value, &value)
@@ -42,6 +44,7 @@ struct List
 
 	operator this[index]; //get the value at 'index'
 	operator this[index] = value; //set the value at 'index' to 'value'
+	operator this[index](args...); //get the value at 'index' and call it with 'args'
 
 	operator sizeof this; //same as 'get length'
 	operator in this; //iterate over the list (yields value, index, &value)

@@ -82,6 +82,9 @@ function testMap()
 	tryGet(42);
 	tryGet("42");
 
+	map.baz = (x, y) -> x - y;
+	printf("map.baz(5, 7) = %d\n", map.baz(5, 7));
+
 	delete map;
 }
 
@@ -91,6 +94,10 @@ function testList()
 	list.add("ahoi", 111, "yar har", 42, 3112);
 	list.splice(3, 1, 13, 37);
 	list[1] = list[1] * 6;
+
+	var lastIndex = list.length;
+	list.add((x, y) -> x * y);
+	printf("list[%d](3, 5) = %d\n", lastIndex, list[lastIndex](3, 5));
 
 	dumpValue(list);
 	delete list;

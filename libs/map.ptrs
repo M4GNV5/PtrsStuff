@@ -145,6 +145,15 @@ struct Map
 		setValue(key, val);
 	}
 
+	operator this.key(args...)
+	{
+		return getValue(key)(...args);
+	}
+	operator this[key](args...)
+	{
+		return getValue(key)(...args);
+	}
+
 	operator sizeof this
 	{
 		return this.length;

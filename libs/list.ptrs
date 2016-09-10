@@ -32,7 +32,7 @@ struct List
 	operator this[index]
 	{
 		index = cast<int>index;
-		return this.getEntry(cast<int>index).value;
+		return this.getEntry(index).value;
 	}
 	operator this[index] = value
 	{
@@ -44,6 +44,11 @@ struct List
 			this.add(value);
 		else
 			this.getEntry(index).value = value;
+	}
+	operator this[index](args...)
+	{
+		index = cast<int>index;
+		return this.getEntry(index).value(...args);
 	}
 
 	operator sizeof this
