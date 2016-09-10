@@ -3,37 +3,22 @@ import pthread_mutex_init as mutex_init,
 	pthread_mutex_unlock as mutex_unlock,
 	pthread_mutex_destroy as mutex_destroy,
 	pthread_self from "libpthread.so.0";
-import Map from "./map.ptrs";
+
+const MUTEX_SIZE = 64; //actually 40 but meh
 
 struct MutexWrap
 {
 	private wrap;
-	private functions;
-	mutex{1024};
+	mutex{MUTEX_SIZE};
 
 	constructor(obj)
 	{
 		wrap = obj;
-		functions = new Map();
 		mutex_init(mutex, NULL);
 	}
 	destructor()
 	{
-		delete functions;
 		mutex_destroy(mutex);
-	}
-
-	private functionWrap(args...)
-	{
-		mutex_lock(mutex);
-
-		var self = pthread_self();
-		var func = functions[self];
-
-		var val = func(...args);
-
-		mutex_unlock(mutex);
-		return val;
 	}
 
 	operator this.key
@@ -43,15 +28,7 @@ struct MutexWrap
 	operator this[key]
 	{
 		mutex_lock(mutex);
-
 		var val = wrap[key];
-		if(typeof val == type<function>)
-		{
-			var self = pthread_self();
-			functions[self] = val;
-			val = functionWrap;
-		}
-
 		mutex_unlock(mutex);
 		return val;
 	}
@@ -64,6 +41,17 @@ struct MutexWrap
 	{
 		mutex_lock(mutex);
 		wrap[key] = val;
+		mutex_unlock(mutex);
+	}
+
+	operator this.key(args...)
+	{
+		this[key](...args);
+	}
+	operator this[key](args...)
+	{
+		mutex_lock(mutex);
+		wrap[key](...args);
 		mutex_unlock(mutex);
 	}
 };
