@@ -15,6 +15,7 @@ struct HttpResponse
 		{
 			delete this.header;
 			free(this.content);
+			free(this.message);
 		}
 	}
 
