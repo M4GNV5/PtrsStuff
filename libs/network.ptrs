@@ -56,7 +56,7 @@ struct Socket
 			SDLNet_FreeSocketSet(this.socketset);
 	}
 
-	getIp(buff, includePort)
+	getIp(buff, includePort = false)
 	{
 		var val = SDLNet_Read32(this.ip);
 

@@ -96,13 +96,12 @@ json_destroy(value);
 struct RegExp
 {
 	constructor(str, ignoreCase, multiLine); //compile regexp string str
-	free(); //free the regex and the struct self
+	destructor(); //free the regex
 	test(str); //test if the regexp matches the specified string
 
 	//much like javascript's String.prototype.match
 	//returns an allocated array (or NULL for no matches) that should be freed
-	//maxMatches default value is 16
-	match(str, maxMatches);
+	match(str, maxMatches = 16);
 }
 ```
 
@@ -117,7 +116,7 @@ struct Socket
 
 	//returns the integer representation of the ip
 	//writes the string representation of the ip to buff optionally including the port
-	getIp(buff, includePort);
+	getIp(buff, includePort = false);
 	//returns the port
 	getPort();
 
@@ -142,12 +141,11 @@ struct Socket
 struct SocketServer
 {
 	constructor(port); //starts listening on port 'port'
+	destructor(); //closes the server
 
 	//checks if client is available every 'checkInterval' milliseconds
 	//if 'checkInterval' <= 0 and no client is connecting it returns undefined
 	accept(checkInterval);
-
-	close(); //frees all memory including itself
 }
 ```
 
