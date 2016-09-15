@@ -5,7 +5,7 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 ## Scripts
 - `ncchat.ptrs`: Chat server you can connect to using netcat
 - `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
-- `test.ptrs`: small test script for map, list, json and http libraries
+- `test.ptrs`: small test script for map, list, json, http and mutex libraries
 - `ircbot.ptrs`: A very basic IRC Bot that can advertise himself
 - `munchkin.ptrs`: IRC bot to play Munchkin Loot Letters
 
@@ -160,4 +160,21 @@ struct Rcon
 	command(cmd);
 	end();
 }
+```
+
+- `mutex.ptrs`
+```C
+struct MutexWrap
+{
+	mutex{}; //memory for a pthread_mutex
+	constructor(obj); //the obj will be thread-safely wrapped
+
+	//locks the mutex then gets/sets/calls the property of the wrapped object
+	operator this.key;
+	operator this[key];
+	operator this.key = value;
+	operator this[key] = value;
+	operator this.key(args...);
+	operator this[key](args...);
+};
 ```
