@@ -1,0 +1,64 @@
+import Socket from "./network.ptrs";
+import strchr, strcpy, strdup;
+
+struct Ts3QueryClient
+{
+	sock;
+	constructor(host, port = 10011)
+	{
+		sock = new Socket(host, port);
+		sock.available(1000);
+		var buff{1024}; //TODO a skip method for Socket?
+		sock.read(buff, 1024, '\n'); //skip TS3
+		sock.read(buff, 1024, '\n'); //skip welcome message
+	}
+
+	send(cmd, result = null)
+	{
+		sock.sends(cmd);
+		sock.sendc('\n');
+
+		return this.receive(_, result);
+	}
+
+	receive(typebuff = NULL, args = null)
+	{
+		var buff{1024};
+		var count = sock.read(buff, 1023, '\n');
+		buff[count - 1] = 0;
+
+		var arg = as<native>strchr(buff, ' ');
+
+		if(typebuff != NULL)
+		{
+			*arg = 0;
+			strcpy(typebuff, buff);
+		}
+
+		if(args != null)
+		{
+			*arg++ = 0;
+			arg = as<native>strdup(arg);
+			buff = arg;
+
+			while(true)
+			{
+				var key = arg;
+				var val = as<native>strchr(arg, '=');
+				if(val == NULL)
+					break;
+				*val++ = 0;
+
+				args[key] = val;
+
+				arg = as<native>strchr(val, ' ');
+				if(arg == NULL)
+					break;
+				*arg++ = 0;
+			}
+
+			args.buffer = buff;
+			return buff;
+		}
+	}
+};
