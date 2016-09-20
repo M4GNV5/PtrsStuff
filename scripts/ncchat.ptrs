@@ -59,7 +59,6 @@ while(true)
 				var count = sock.read(buff, 255, '\n');
 				buff[count - 1] = 0;
 				var splitter = ':';
-				printf("%s\n", buff);
 
 				var spaceOnly = true;
 				for(var j = 0; j < count - 1; j++)
