@@ -2,6 +2,17 @@ import sprintf, strncpy, strlen, malloc, strdup, free, strncmp, strtod;
 import Map from "./map.ptrs";
 import List from "./list.ptrs";
 
+var escapeSequences = map {
+	"\"": '"',
+	"\\": '\\',
+	"/": '/',
+	"\b": 'b',
+	"\f": 'f',
+	"\n": 'n',
+	"\r": 'r',
+	"\t": 't'
+};
+
 function json_encode(val)
 {
 	if(typeof val == type<undefined>)
@@ -14,22 +25,29 @@ function json_encode(val)
 	}
 	else if(typeof val == type<native>)
 	{
+		var key{2} = {0, 0};
 		var len = strlen(val);
-		var escapeCount = 0;
+		var escapeLen = 0;
 		for(var i = 0; i < len; i++)
 		{
+			key[0] = val[i];
+			if(typeof escapeSequences[key] != type<undefined>)
+				escapeLen += 2;
 			if(val[i] < ' ' || val[i] > '~')
-				escapeCount++;
+				escapeLen += 6;
 		}
 
-		var buff = as<native>malloc(3 + len + 5 * escapeCount);
+		var buff = as<native>malloc(3 + len + escapeLen);
 		var buffptr = buff;
 		*buffptr++ = '"';
 
 		for(var i = 0; i < len; i++)
 		{
-			if(val[i] < ' ' || val[i] > '~')
-				buffptr += sprintf(buffptr, "\\u00%hhX", val[i]);
+			key[0] = val[i];
+			if(typeof escapeSequences[key] != type<undefined>)
+				buffptr += sprintf(buffptr, "\\%c", escapeSequences[key]);
+			else if(val[i] < ' ' || val[i] > '~')
+				buffptr += sprintf(buffptr, "\\u00%02hhX", val[i]);
 			else
 				*buffptr++ = val[i];
 		}
