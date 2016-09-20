@@ -7,11 +7,11 @@ import http_get from "../libs/http.ptrs";
 import MutexWrap from "../libs/mutex.ptrs";
 import pthread_create, pthread_join, pthread_self from "libpthread.so.0";
 
-function dumpValue(map, indent = 0)
+function dumpValue(mappy, indent = 0)
 {
-	if(map instanceof Map)
+	if(mappy instanceof Map)
 	{
-		foreach(key, val in map)
+		foreach(key, val in mappy)
 		{
 			for(var i = 0; i < indent; i++)
 				printf(" ");
@@ -27,9 +27,9 @@ function dumpValue(map, indent = 0)
 			}
 		}
 	}
-	else if(map instanceof List)
+	else if(mappy instanceof List)
 	{
-		foreach(val, i in map)
+		foreach(val, i in mappy)
 		{
 			for(var i = 0; i < indent; i++)
 				printf(" ");
@@ -57,35 +57,35 @@ function dumpValue(map, indent = 0)
 
 function testMap()
 {
-	var map = new Map();
+	var mappy = new Map();
 	function tryGet(key)
 	{
 		try
 		{
-			printf("map[%s] = %s\n", cast<native>key, cast<native>map[key]);
+			printf("mappy[%s] = %s\n", cast<native>key, cast<native>mappy[key]);
 		}
 		catch(err, trace)
 		{
 			printf("%s\n%s", err, trace);
 		}
 	}
-	map.foo = 42;
+	mappy.foo = 42;
 	tryGet("foo");
-	map.foo = 1337;
+	mappy.foo = 1337;
 	tryGet("foo");
-	map.remove("foo");
+	mappy.remove("foo");
 	tryGet("foo");
 
-	map.bar = 31.12;
-	map[42] = map;
+	mappy.bar = 31.12;
+	mappy[42] = mappy;
 	tryGet("bar");
 	tryGet(42);
 	tryGet("42");
 
-	map.baz = (x, y) -> x - y;
-	printf("map.baz(5, 7) = %d\n", map.baz(5, 7));
+	mappy.baz = (x, y) -> x - y;
+	printf("mappy.baz(5, 7) = %d\n", mappy.baz(5, 7));
 
-	delete map;
+	delete mappy;
 }
 
 function testList()
@@ -204,7 +204,7 @@ function testMutex()
 
 var test = arguments[0] || "usage";
 
-if(strcmp(test, "map") == 0)
+if(strcmp(test, "mappy") == 0)
 	testMap();
 else if(strcmp(test, "list") == 0)
 	testList();
@@ -217,4 +217,4 @@ else if(strcmp(test, "http") == 0)
 else if(strcmp(test, "mutex") == 0)
 	testMutex();
 else
-	printf("Usage: ptrs test.ptrs <testcase>\nTestcase can be one of map, list, json, regexp and http\n");
+	printf("Usage: ptrs test.ptrs <testcase>\nTestcase can be one of mappy, list, json, regexp and http\n");

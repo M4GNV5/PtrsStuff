@@ -200,7 +200,7 @@ function json_decode(str)
 	}
 	function parseObject()
 	{
-		var map = new Map();
+		var val = new Map();
 
 		if(*str++ != '{')
 			throw "Invalid JSON, expected { got %c" % *--str;
@@ -208,7 +208,7 @@ function json_decode(str)
 		if(*str == '}')
 		{
 			str++;
-			return map;
+			return val;
 		}
 
 		var key{32};
@@ -222,7 +222,7 @@ function json_decode(str)
 				throw "Invalid JSON, expected : got %c" % *--str;
 
 			skipSpaces();
-			map[key] = parseValue();
+			val[key] = parseValue();
 			skipSpaces();
 
 
@@ -234,7 +234,7 @@ function json_decode(str)
 		}
 		str++;
 
-		return map;
+		return val;
 	}
 
 	return parseValue();
