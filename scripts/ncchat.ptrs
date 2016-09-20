@@ -16,7 +16,7 @@ struct Client
 	destructor()
 	{
 		if(this.socket)
-			this.socket.disconnect();
+			delete this.socket;
 			
 		broadcast(this.nick, '-', "left");
 	}
@@ -37,7 +37,7 @@ function broadcast(nick, splitter, msg)
 		}
 		catch(e)
 		{
-			printf("/!\\ %s\n", e);
+			printf("/!\\ %-6.6s ! %s\n", client.nick, e);
 			delete clients.remove(i);
 		}
 	}
@@ -90,8 +90,9 @@ while(true)
 		}
 		catch(e)
 		{
-			printf("/!\\ %s\n", e);
+			printf("/!\\ %-6.6s ! %s\n", client.nick, e);
 			delete clients.remove(i);
+			break;
 		}
 	}
 	
