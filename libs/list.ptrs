@@ -177,7 +177,7 @@ struct List
 		return last;
 	}
 
-	fromArray(buff, len = sizeof(buff))
+	static fromArray(buff, len = sizeof(buff))
 	{
 		var list = new List();
 		var subset = buff[0 .. len];
@@ -187,9 +187,9 @@ struct List
 	}
 	toArray(buff, max)
 	{
-		if(!max)
+		if(typeof max == type<undefined>)
 			max = buff ? sizeof buff : _length;
-		if(!buff)
+		if(typeof buff == type<undefined>)
 		{
 			max = _length;
 			buff = as<pointer>malloc(_length * VARSIZE);

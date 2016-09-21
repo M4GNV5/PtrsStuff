@@ -56,8 +56,8 @@ struct List
 	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
 	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
 
-	//create a new List from an array. This can be used without an instance e.g. List.fromArray([1, 2, 3]);
-	fromArray(buff, length = sizeof(buff));
+	//create a new List from an array
+	static fromArray(buff, length = sizeof buff);
 	//write the entries of a list to the array. Returns a malloc'ed array if 'buff' is NULL or undefined
 	toArray(buff, max);
 }
