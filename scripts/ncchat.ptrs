@@ -38,7 +38,6 @@ function broadcast(nick, splitter, msg)
 		catch(e)
 		{
 			printf("/!\\ %-6.6s ! %s\n", client.nick, e);
-			delete clients.remove(i);
 		}
 	}
 }
@@ -86,10 +85,17 @@ while(true)
 				}
 				broadcast(client.nick, splitter, buff);
 			}
+			
+			if(!sock.connected)
+			{
+				clients.remove(i);
+				delete client;
+				break;
+			}
 		}
-		catch(e)
+		catch(e, trace)
 		{
-			printf("/!\\ %-6.6s ! %s\n", client.nick, e);
+			printf("/!\\ %-6.6s ! %s\n%s", client.nick, e, trace);
 			delete clients.remove(i);
 			break;
 		}
