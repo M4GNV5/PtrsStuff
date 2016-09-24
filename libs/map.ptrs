@@ -98,7 +98,7 @@ struct Map
 		}
 	}
 
-	has(key)
+	hasValue(key)
 	{
 		return !!getEntry(key);
 	}
@@ -154,11 +154,15 @@ struct Map
 		return getValue(key)(...args);
 	}
 
+	operator key in this
+	{
+		return !!getEntry(key);
+	}
 	operator sizeof this
 	{
 		return this.length;
 	}
-	operator in this
+	operator foreach in this
 	{
 		var curr = this.first;
 		while(curr != null)

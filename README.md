@@ -21,18 +21,19 @@ struct Map
 
 	getValue(key); //get a value from the map
 	setValue(key, val); //set a value in the map (adding a new entry if it does not exist)
-	has(key); //check if a key exists in the map
+	hasValue(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
 
 	operator this.key; //same as getValue(key);
 	operator this[key]; //same as getValue(key);
 	operator this.key = val; //same as setValue(key, val);
 	operator this[key] = val; //same as setValue(key, val);
-	operator this.key(args...); //same as getValue(key)(args...);
-	operator this[key](args...); //same as getValue(key)(args...);
+	operator this.key(args...); //same as getValue(key)(...args);
+	operator this[key](args...); //same as getValue(key)(...args);
 
+	operator key in this; //same as hasValue(key);
 	operator sizeof this; //same as 'get count'
-	operator in this; //iterate over the list (yields key, value, &value)
+	operator foreach in this; //iterate over the map (yields key, value, &value)
 }
 ```
 
@@ -46,8 +47,9 @@ struct List
 	operator this[index] = value; //set the value at 'index' to 'value'
 	operator this[index](args...); //get the value at 'index' and call it with 'args'
 
+	operator index in this; //same as 'index >= 0 && index < length'
 	operator sizeof this; //same as 'get length'
-	operator in this; //iterate over the list (yields value, index, &value)
+	operator foreach in this; //iterate over the list (yields value, index, &value)
 
 	add(values...); //add values to the list
 	remove(index); //remove a value from the lsit and return it

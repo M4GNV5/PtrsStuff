@@ -51,11 +51,16 @@ struct List
 		return this.getEntry(index).value(...args);
 	}
 
+	operator index in this
+	{
+		index = cast<int>index;
+		return index >= 0 && index < _length;
+	}
 	operator sizeof this
 	{
 		return _length;
 	}
-	operator in this
+	operator foreach in this
 	{
 		var i = 0;
 		var curr = this.first;

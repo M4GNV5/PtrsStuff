@@ -31,7 +31,7 @@ function json_encode(val)
 		for(var i = 0; i < len; i++)
 		{
 			key[0] = val[i];
-			if(typeof escapeSequences[key] != type<undefined>)
+			if(key in escapeSequences)
 				escapeLen += 2;
 			if(val[i] < ' ' || val[i] > '~')
 				escapeLen += 6;
@@ -44,7 +44,7 @@ function json_encode(val)
 		for(var i = 0; i < len; i++)
 		{
 			key[0] = val[i];
-			if(typeof escapeSequences[key] != type<undefined>)
+			if(key in escapeSequences)
 				buffptr += sprintf(buffptr, "\\%c", escapeSequences[key]);
 			else if(val[i] < ' ' || val[i] > '~')
 				buffptr += sprintf(buffptr, "\\u00%02hhX", val[i]);
