@@ -7,9 +7,9 @@ import SDL_Init, SDLNet_Init,
 
 var INT_MAX = 0x7fffffff;
 
-if(SDL_Init(0) == -1)
+if(SDL_Init(0) != 0)
 	throw as<native>SDL_GetError() || "Unknown SDL_Init error";
-if(SDLNet_Init() == -1)
+if(SDLNet_Init() != 0)
 	throw as<native>SDL_GetError() || "Unknown SDLNet_Init error";
 
 struct Socket
