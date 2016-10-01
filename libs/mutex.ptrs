@@ -21,6 +21,15 @@ struct MutexWrap
 		mutex_destroy(mutex);
 	}
 
+	lock()
+	{
+		mutex_lock(mutex);
+	}
+	unlock()
+	{
+		mutex_unlock(mutex);
+	}
+
 	operator this.key
 	{
 		return this[key];
