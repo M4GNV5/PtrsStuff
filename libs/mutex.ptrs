@@ -46,12 +46,13 @@ struct MutexWrap
 
 	operator this.key(args...)
 	{
-		this[key](...args);
+		return this[key](...args);
 	}
 	operator this[key](args...)
 	{
 		mutex_lock(mutex);
-		wrap[key](...args);
+		var val = wrap[key](...args);
 		mutex_unlock(mutex);
+		return val;
 	}
 };
