@@ -1,4 +1,4 @@
-import usleep, strdup, strcpy, sprintf, printf, free;
+import usleep, strdup, strcpy, isprint, sprintf, printf, free;
 import SocketServer from "../libs/network.ptrs";
 import List from "../libs/list.ptrs";
 
@@ -12,12 +12,12 @@ struct Client
 	nick{16};
 	socket;
 	antiSpam = 0;
-	
+
 	destructor()
 	{
 		if(this.socket)
 			delete this.socket;
-			
+
 		broadcast(this.nick, '-', "left");
 	}
 };
@@ -60,17 +60,14 @@ while(true)
 				var splitter = ':';
 
 				var spaceOnly = true;
-				for(var j = 0; j < count - 1; j++)
+				function isSpaceOnly(c)
 				{
-					if(buff[j] != ' ')
+					if(c != ' ')
 						spaceOnly = false;
-
-					if(buff[j] < 32 || buff[j] > 126)
-					{
-						strcpy(buff, "me=idiot");
-						break;
-					}
+					return true;
 				}
+
+				buff[0 .. count] => isprint => isSpaceOnly => buff;
 
 				client.antiSpam += 10;
 				if(spaceOnly || client.antiSpam > 19)
@@ -85,7 +82,7 @@ while(true)
 				}
 				broadcast(client.nick, splitter, buff);
 			}
-			
+
 			if(!sock.connected)
 			{
 				clients.remove(i);
@@ -100,7 +97,7 @@ while(true)
 			break;
 		}
 	}
-	
+
 	var sock = server.accept();
 	if(sock)
 	{
@@ -121,6 +118,6 @@ while(true)
 		sock.sends("\nType your nickname: ");
 		clients.add(client);
 	}
-	
+
 	usleep(100000);
 }
