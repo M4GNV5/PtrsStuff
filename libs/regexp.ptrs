@@ -25,6 +25,17 @@ struct RegExp
 		regfree(this.regex);
 	}
 
+	operator val => this => any
+	{
+		var str = cast<native>val;
+		if(this.test(str))
+		{
+			if(yield str)
+				return;
+		}
+		return true;
+	}
+
 	test(str)
 	{
 		return regexec(this.regex, str, 0, NULL, 0) == 0;

@@ -51,6 +51,9 @@ struct List
 	operator sizeof this; //same as 'get length'
 	operator foreach in this; //iterate over the list (yields value, index, &value)
 
+	operator this => any; //use a list as an input for an algorithm expression
+	operator val => this; //use a list as an output for an algorithm expression
+
 	add(values...); //add values to the list
 	remove(index); //remove a value from the lsit and return it
 	splice(index, removeCount, insert...); //remove and/or add multiple values
@@ -99,7 +102,11 @@ struct RegExp
 {
 	constructor(str, ignoreCase, multiLine); //compile regexp string str
 	destructor(); //free the regex
-	test(str); //test if the regexp matches the specified string
+
+	operator val => this => any; //filter values not matching the pattern
+
+	//test if the regexp matches the specified string
+	test(str);
 
 	//much like javascript's String.prototype.match
 	//returns an allocated array (or NULL for no matches) that should be freed

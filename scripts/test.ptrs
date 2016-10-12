@@ -1,4 +1,4 @@
-import printf, free, strcmp;
+import printf, puts, free, strcmp;
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
 import RegExp from "../libs/regexp.ptrs";
@@ -101,6 +101,16 @@ function testList()
 
 	dumpValue(list);
 	delete list;
+}
+
+function testAlgorithm()
+{
+	var list = new List();
+	var reg = new RegExp("[0-9]+", true);
+
+	list.add("kek", 3.14, "3e2", "3deep5me", 42);
+
+	list => reg => puts;
 }
 
 function testJson()
@@ -208,6 +218,8 @@ if(strcmp(test, "mappy") == 0)
 	testMap();
 else if(strcmp(test, "list") == 0)
 	testList();
+else if(strcmp(test, "algorithm") == 0)
+	testAlgorithm();
 else if(strcmp(test, "json") == 0)
 	testJson();
 else if(strcmp(test, "regexp") == 0)
