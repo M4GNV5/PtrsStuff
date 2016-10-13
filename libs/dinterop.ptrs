@@ -1,0 +1,148 @@
+import dlopen, dlsym, dlerror;
+import sprintf, strlen, isspace, isalnum;
+
+var dlib_mangle;
+
+const RTLD_LAZY = 1;
+function dlib_open(path)
+{
+	dlerror();
+	var ptr = dlopen(path, RTLD_LAZY);
+
+	var err = as<native>dlerror();
+	if(err != NULL)
+		throw err;
+
+	return ptr;
+}
+
+function dlib_import(lib, name)
+{
+	var mangled{512};
+	dlib_mangle(mangled, name);
+
+	dlerror();
+	var ptr = as<native>dlsym(lib, mangled);
+
+	var err = as<native>dlerror();
+	if(err != NULL)
+		throw err;
+
+	return ptr;
+}
+
+var typeMangles = map
+{
+	void: 'v',
+	"null": 'n',
+	bool: 'b',
+	char: 'a',
+	wchar: 'u',
+	dchar: 'w',
+
+	byte: 'g',
+	short: 's',
+	int: 'i',
+	long: 'l',
+
+	ubyte: 'h',
+	ushort: 't',
+	uint: 'k',
+	ulong: 'm',
+
+	float: 'f',
+	double: 'd'
+
+	//TODO non simple types
+};
+
+//https://dlang.org/spec/abi.html#name_mangling
+function dlib_mangle(ptr, name, abi = 'F')
+{
+	function skipSpaces()
+	{
+		while(isspace(*name))
+			name++;
+	}
+	function readWord(buff)
+	{
+		var start = buff;
+
+		while(isalnum(*name) || *name == '_')
+			*buff++ = *name++;
+
+		*buff++ = 0;
+		return buff - start;
+	}
+	function readType()
+	{
+		var buff{128};
+		readWord(buff);
+
+		if(buff in typeMangles)
+			return typeMangles[buff];
+
+		throw "Invalid type '%s'" % buff;
+	}
+	function mangleType(t)
+	{
+		//TODO non simple types
+		*ptr++ = t;
+	}
+
+	*ptr++ = '_';
+	*ptr++ = 'D';
+
+	//TODO function attributes
+
+	var ret = readType();
+	skipSpaces();
+
+	{
+		var buff{128};
+		readWord(buff);
+
+		ptr += sprintf(ptr, "%d%s", strlen(buff), buff);
+		skipSpaces();
+	}
+
+
+	while(*name == '.')
+	{
+		skipSpaces();
+		name++;
+		skipSpaces();
+
+		var buff{128};
+		readWord(buff);
+
+		ptr += sprintf(ptr, "%d%s", strlen(buff), buff);
+	}
+	skipSpaces();
+
+	if(*name++ != '(')
+		throw "Expected ( got %c" % *--name;
+
+	*ptr++ = abi;
+	skipSpaces();
+
+	if(*name != ')')
+	{
+		while(true)
+		{
+			mangleType(readType());
+			skipSpaces();
+
+			if(*name == ')')
+				break;
+			else if(*name++ != ',')
+				throw "Expected , got %c" % *--name;
+
+			skipSpaces();
+		}
+	}
+
+	*ptr++ = 'Z';
+	mangleType(ret);
+	*ptr++ = 0;
+}
