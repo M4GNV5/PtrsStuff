@@ -26,13 +26,11 @@ struct HttpResponse
 
 		var buff{1024};
 
-		{
-			var count = sock.read(buff, 1023, '\n');
-			buff[count - 2] = 0;
-			var codeIndex = strchr(buff, ' ');
-			this.code = atoi(codeIndex);
-			this.message = as<native>strdup(codeIndex + 5);
-		}
+		var count = sock.read(buff, 1023, '\n');
+		buff[count - 2] = 0;
+		var codeIndex = strchr(buff, ' ');
+		this.code = atoi(codeIndex);
+		this.message = as<native>strdup(codeIndex + 5);
 
 		this.header = new Map();
 		while(true)
