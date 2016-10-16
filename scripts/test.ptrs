@@ -1,6 +1,7 @@
-import printf, puts, free, strcmp;
+import printf, puts, free, strcmp, fopen, fclose, fprintf, atoi, isdigit, isspace;
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
+import byChar, ByLine, OrFilter, ValueFilter, BoundFilter from "../libs/algorithm.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
@@ -105,12 +106,24 @@ function testList()
 
 function testAlgorithm()
 {
+	function nonZero(val)
+	{
+		printf("val = %d\n", val);
+		return val == 0 ? false : true;
+	}
+
+	var fd = fopen("nums.txt", "w+");
+
 	var list = new List();
-	var reg = new RegExp("[0-9]+", true);
+	list.add("kek", "3\n14", "666\nlol\n42", "0", "   ", "3deep5me", "42");
 
-	list.add("kek", 3.14, "3e2", "3deep5me", 42);
-
-	list => reg => puts;
+	scoped list
+		=> byChar
+		=> new_stack OrFilter(isdigit, isspace) //TODO add a syntax for this (e.g. isdigit || isspace)
+		=> new_stack ByLine()
+		=> new_stack ValueFilter(atoi)
+		=> nonZero
+		=> new_stack BoundFilter(fprintf, _, 2, fd, "%d\n");
 }
 
 function testJson()

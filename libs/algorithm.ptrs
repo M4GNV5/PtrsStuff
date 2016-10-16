@@ -1,0 +1,187 @@
+import memcpy;
+
+const EOF = 0xFFFFFFFF;
+function iseof(c)
+{
+	return c == EOF;
+}
+function breakOnEof(c)
+{
+	return c == EOF ? undefined : true;
+}
+
+//TODO add a syntax for and/or combination of filters to PointerScript
+struct AndFilter
+{
+	func1;
+	func2;
+	constructor(_func1, _func2)
+	{
+		func1 = _func1;
+		func2 = _func2;
+	}
+
+	operator val => this => any
+	{
+		if(func1(val) && func2(val))
+		{
+			if(yield val)
+				return;
+		}
+		return true;
+	}
+};
+struct OrFilter
+{
+	func1;
+	func2;
+	constructor(_func1, _func2)
+	{
+		func1 = _func1;
+		func2 = _func2;
+	}
+
+	operator val => this => any
+	{
+		if(func1(val) || func2(val))
+		{
+			if(yield val)
+				return;
+		}
+		return true;
+	}
+};
+
+struct ValueFilter
+{
+	func;
+	constructor(_func)
+	{
+		func = _func;
+	}
+
+	operator val => this => any
+	{
+		if(yield func(val))
+			return;
+		return true;
+	}
+};
+
+struct BoundFilter
+{
+	func;
+	replaceVal;
+	valPos;
+	argc = 0;
+	args[16];
+
+	constructor(func, replaceVal = false, valPos = -1, args...)
+	{
+		this.func = func;
+		this.replaceVal = replaceVal;
+
+		this.valPos = valPos;
+		argc = sizeof args;
+		if(valPos == argc)
+			argc++;
+		if(argc > 16)
+			throw "Cannot bind more than 16 arguments to a function";
+
+		for(var i = 0; i < argc; i++)
+			this.args[i] = args[i];
+	}
+
+	operator this => any
+	{
+		var sizedArgs = args[0 .. argc];
+		if(valPos >= 0)
+			sizedArgs[valPos] = undefined;
+
+		while(true)
+		{
+			var val = func(...sizedArgs);
+			if(typeof val == type<undefined>)
+				return;
+			if(yield val)
+				return;
+		}
+	}
+
+	operator val => this
+	{
+		var sizedArgs = args[0 .. argc];
+		if(valPos >= 0)
+			sizedArgs[valPos] = val;
+
+		func(...sizedArgs);
+		return true;
+	}
+
+	operator val => this => any
+	{
+		var sizedArgs = args[0 .. argc];
+		if(valPos >= 0)
+			sizedArgs[valPos] = val;
+
+		var ret = func(...sizedArgs);
+
+		if(typeof ret == type<undefined>)
+			return;
+
+		if(replaceVal)
+			val = ret;
+		if(ret)
+			yield val;
+
+		return true;
+	}
+};
+
+struct byChar
+{
+	bla; //TODO fix ptrs crashing when parsing a struct without a member
+
+	operator val => this => any
+	{
+		if(typeof val == type<native>)
+		{
+			for(var i = 0; val[i] != 0; i++)
+			{
+				if(yield val[i])
+					return;
+			}
+		}
+		else
+		{
+			if(yield val)
+				return;
+		}
+
+		return true;
+	}
+};
+
+struct ByLine
+{
+	buff{1024};
+	index = 0;
+
+	operator val => this => any
+	{
+		if(val == '\n' || val == 0)
+		{
+			buff[index] = 0;
+			index = 0;
+			if(yield buff)
+				return;
+			return true;
+		}
+		else
+		{
+			buff[index++] = val;
+			return false;
+
+		}
+	}
+};
