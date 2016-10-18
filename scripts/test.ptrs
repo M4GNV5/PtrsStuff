@@ -115,7 +115,7 @@ function testAlgorithm()
 	var fd = fopen("nums.txt", "w+");
 
 	var list = new List();
-	list.add("kek", "3\n14", "666\nlol\n42", "0", "   ", "3deep5me", "42");
+	list.add("kek", "3\n14", "666\nlol\n42\n", "0", " \n  ", "3deep\n5me", "42\n");
 
 	scoped list
 		=> byChar
