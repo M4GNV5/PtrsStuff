@@ -140,9 +140,7 @@ struct BoundFilter
 
 struct byChar
 {
-	bla; //TODO fix ptrs crashing when parsing a struct without a member
-
-	operator val => this => any
+	static operator val => this => any
 	{
 		if(typeof val == type<native>)
 		{
