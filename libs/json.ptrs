@@ -142,8 +142,11 @@ function json_decode(str)
 			throw "Invalid JSON, expected \" got %c" % *--str;
 
 		var ptr = str;
-		while(*str != '"')
+		while(*str != '"' && *str != 0)
 			str++;
+
+		if(*str == 0)
+			throw "Invalid JSON, expected \" got EOF";
 
 		var len = str - ptr;
 		max = max || len;
@@ -167,7 +170,7 @@ function json_decode(str)
 			return parseArray();
 		if(*str == '"')
 			return parseString();
-		if(*str >= '0' && *str <= '9')
+		if((*str >= '0' && *str <= '9') || *str == '-')
 			return as<float>strtod(str, &str);
 
 		if(strncmp(str, "null", 4) == 0)
@@ -255,7 +258,12 @@ function json_decode(str)
 		return val;
 	}
 
-	return parseValue();
+	var parsed = parseValue();
+	skipSpaces();
+	if(*str != 0)
+		throw "Invalid JSON, expected EOF got %c" % *str;
+
+	return parsed;
 }
 
 function json_destroy(value)
