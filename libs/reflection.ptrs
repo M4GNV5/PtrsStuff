@@ -1,0 +1,170 @@
+import strcmp;
+
+struct FunctionInfo
+{
+	name : native;
+	argc : int;
+	stackOffset : uint;
+	varArgScope : u32;
+	varArgOffset : u32;
+	args : native; //ptrs_symbol
+	argv : native; //ptrs_ast *
+	body : native; //ptrs_ast
+	scope : native; //ptrs_scope
+	nativeCb : native;
+};
+
+const MEMBER_VAR = 0;
+const MEMBER_FUNCTION = 1;
+const MEMBER_ARRAY = 2;
+const MEMBER_VARARRAY = 3;
+const MEMBER_GETTER = 4;
+const MEMBER_SETTER = 5;
+const MEMBER_TYPED = 6;
+
+struct ptrs_nativetype_info
+{
+	name : native;
+	nativeType : u64; //enum
+	size : u64; //TODO size_t
+	getHandler : native;
+	setHandler : native;
+};
+struct ptrs_overload
+{
+	flags : u8; //bitfield isLeftSide : 1; isStatic : 1;
+	opHandler : native;
+	handler : native; //function
+	next : native; //ptrs_overload
+};
+var StructInfo;
+struct MemberInfo
+{ //ptrs_structlist
+	name : native;
+	offset : uint;
+	flags : u8; //bitfield isPrivate : 1; isStatic : 1;
+	memberType : u64; //enum type
+	memberValue : native; //union ptrs_ast, function, uint64_t, nativetype_info
+	next : native; //ptrs_structlist
+	
+	get isPrivate
+	{
+		return flags & 1 == 1;
+	}
+	get isStatic
+	{
+		return flags & 2 == 1;
+	}
+	
+	getValue(instance)
+	{
+		var ptr;
+		if(typeof instance == type<struct>)
+		{
+			var info = cast_stack<StructInfo>instance;
+			if(isStatic)
+				ptr = info.staticData;
+			else
+				ptr = info.data;
+		}
+		else
+		{
+			ptr = instance;
+		}
+		
+		if(memberType == MEMBER_VAR)
+			return *as<pointer>(ptr + offset);
+		
+		switch(memberType)
+		{
+			case MEMBER_VAR:
+				return *as<pointer>(ptr + offset);
+			case MEMBER_FUNCTION:
+				return as<function>memberValue;
+			case MEMBER_ARRAY:
+				var size = as<int>memberValue;
+				return (as<native>(ptr + offset))[0 .. size];
+			case MEMBER_VARARRAY:
+				var size = as<int>memberValue;
+				return (as<pointer>(ptr + offset))[0 .. size];
+			case MEMBER_GETTER:
+				return (as<function>memberValue)();
+			case MEMBER_SETTER:
+				throw "Cannot call getValue on a setter";
+			case MEMBER_TYPED:
+				var info = cast_stack<ptrs_nativetype_info>memberValue;
+				var val = 31.12;
+				info.getHandler(ptr + offset, info.size, &val);
+				return val;
+		};
+	}
+	
+	setValue(instance, val)
+	{
+		var ptr;
+		if(typeof instance == type<struct>)
+		{
+			var info = cast_stack<StructInfo>instance;
+			if(isStatic)
+				ptr = info.staticData;
+			else
+				ptr = info.data;
+		}
+		else
+		{
+			ptr = instance;
+		}
+		
+		switch(memberType)
+		{
+			case MEMBER_VAR:
+				*as<pointer>(ptr + offset) = val;
+			case MEMBER_FUNCTION:
+				throw "Cannot call setValue on a function member";
+			case MEMBER_ARRAY:
+				throw "Cannot call setValue on an array member";
+			case MEMBER_VARARRAY:
+				throw "Cannot call setValue on a var-array member";
+			case MEMBER_GETTER:
+				throw "Cannot call setValue on a getter";
+			case MEMBER_SETTER:
+				(as<function>memberValue)(val);
+			case MEMBER_TYPED:
+				var info = cast_stack<ptrs_nativetype_info>memberValue;
+				info.setHandler(ptr + offset, info.size, &val);
+		};
+	}
+};
+struct StructInfo
+{ //ptrs_struct
+	name : native;
+	symbolScope : uint;
+	symbolOffset : uint;
+	member : native; //ptrs_structlist
+	overloads : native; //ptrs_overload
+	scope : native; //ptrs_scope
+	size : int;
+	isInstance : char; //bool :(
+	staticData : pointer;
+	data : pointer;
+	
+	get isInstance
+	{
+		return data != NULL;
+	}
+	
+	getMember(name, allowStatic = true, allowPrivate = false)
+	{
+		var curr = member;
+		while(curr != null)
+		{
+			var info = cast_stack<MemberInfo>curr;
+			if((allowStatic || !info.isStatic)
+				&& (allowPrivate || !info.isPrivate)
+				&& strcmp(info.name, name) == 0)
+				return cast<MemberInfo>curr;
+				
+			curr = info.next;
+		}
+	}
+};
