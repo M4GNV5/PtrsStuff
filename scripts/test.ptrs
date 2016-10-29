@@ -98,7 +98,13 @@ function testList()
 
 	var lastIndex = list.length;
 	list.add((x, y) -> x * y);
-	printf("list[%d](3, 5) = %d\n", lastIndex, list[lastIndex](3, 5));
+	printf("list[%d](3, 5) = %d\n\n", lastIndex, list[lastIndex](3, 5));
+
+	dumpValue(list);
+	printf("\n");
+
+	list.remove(13);
+	list.removeAt(3);
 
 	dumpValue(list);
 	delete list;

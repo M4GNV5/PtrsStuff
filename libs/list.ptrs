@@ -135,7 +135,7 @@ struct List
 		_length += sizeof(values);
 	}
 
-	remove(index)
+	removeAt(index)
 	{
 		var prev;
 		var curr = this.getEntry(index, &prev);
@@ -152,6 +152,35 @@ struct List
 		_length--;
 		delete curr;
 		return val;
+	}
+
+	remove(val, compare = (a, b) -> a == b)
+	{
+		var prev = null;
+		var curr = this.first;
+
+		while(curr != null)
+		{
+			if(compare(curr.value, val))
+			{
+				if(prev == null)
+					this.first = curr.next;
+				else
+					prev.next = curr.next;
+
+				if(this.first == null)
+					this.last = null;
+
+				_length--;
+				delete curr;
+				return val;
+			}
+
+			prev = curr;
+			curr = curr.next;
+		}
+
+		throw "Cannot remove '%s' from list: No such entry" % cast<native>val;
 	}
 
 	splice(index, deleteCount, insert...)
