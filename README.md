@@ -55,7 +55,8 @@ struct List
 	operator val => this; //use a list as an output for an algorithm expression
 
 	add(values...); //add values to the list
-	remove(index); //remove a value from the lsit and return it
+	removeAt(index); //removes value at 'index' and returns it
+	remove(value, compare = (a, b) -> a == b); //removes the first occurence of 'value' from the list
 	splice(index, removeCount, insert...); //remove and/or add multiple values
 
 	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
@@ -156,6 +157,35 @@ struct SocketServer
 	//if 'checkInterval' <= 0 and no client is connecting it returns undefined
 	accept(checkInterval);
 }
+```
+
+- `websocket.ptrs`
+```C
+//type passed to callbacks of a WebSocketServer, do not construct this yourself
+struct libwebsock_client
+{
+	get server; //retrieve the server object a client is connected to
+
+	send(text); //send text to the client
+	sendBinary(buff, len); //send binary data to the client
+	close(); //close the connection to the client
+};
+
+struct WebSocketServer
+{
+	constructor(port = "6060", host = "0.0.0.0"); //construct a new websocket server
+
+	//the following callbacks are called when a client (dis-)connects or sends a message
+	//	'client' is of type libwebsock_client
+	onopen; //arguments: (client)
+	onclose; //arguments: (client)
+	onmessage; //arguments: (client, message, len)
+
+	userdata = undefined;
+
+	broadcast(msg); //broadcasts msg to all connected clients
+	listen(); //starts listening, looping infinitly
+};
 ```
 
 - `rcon.ptrs`:
