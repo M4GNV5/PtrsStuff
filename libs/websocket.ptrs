@@ -1,0 +1,140 @@
+//obtain source from https://github.com/payden/libwebsock
+//TODO add this as a submodule?
+import libwebsock_init, libwebsock_bind, libwebsock_wait, libwebsock_close,
+	libwebsock_send_binary, libwebsock_send_text, libwebsock_send_all_text from "../bin/libwebsock.so.1.0.7";
+
+asm bundleFunction
+{
+	bundleFunction:
+		mov %rdi, %rax
+		ret
+};
+
+struct libwebsock_context
+{
+	running : int;
+	ssl_init : int;
+	flags : int;
+	owns_base : int;
+	base : pointer;
+	onmessage : pointer;
+	control_callback : pointer;
+	onopen : pointer;
+	onclose : pointer;
+	onpong : pointer;
+	clients : pointer;
+	userdata : pointer;
+};
+struct libwebsock_client
+{
+	sockfd : int;
+	flags : int;
+	data : pointer;
+	current_frame : pointer;
+	sa : pointer;
+	bev : pointer;
+	tlist : pointer;
+	thread_lock{40}; //pthread_mutex
+	onmessage : pointer;
+	control_callback : pointer;
+	onopen : pointer;
+	onclose : pointer;
+	onpong : pointer;
+	ssl : pointer; //<- this means that libwebsock needs to be compiled with SSL support
+	close_info : pointer;
+	ctx : pointer;
+	next : pointer;
+	prev : pointer;
+
+	send(msg)
+	{
+		libwebsock_send_text(this, msg);
+	}
+	sendBinary(buff, len)
+	{
+		libwebsock_send_binary(this, buff, len);
+	}
+
+	close()
+	{
+		libwebsock_close(this);
+	}
+};
+struct libwebsock_message
+{
+	opcode : uint;
+	length : ulonglong;
+	payload : native;
+};
+function retrieveUserdata(client)
+{
+	var ctx = cast_stack<libwebsock_context>(client.ctx);
+	return as<struct>ctx.userdata;
+}
+
+struct WebSocketServer
+{
+	socket;
+
+	onopen = null;
+	onclose = null;
+	onmessage = null;
+	userdata = undefined;
+
+	constructor(port = "6060", host = "0.0.0.0")
+	{
+		socket = libwebsock_init();
+
+		if(typeof port != type<native>)
+			port = cast<native>port;
+		libwebsock_bind(socket, host, port);
+	}
+	destructor()
+	{
+		throw "Cannot close WebSocketServer, libwebsock doesnt support that :(";
+	}
+
+	private _onopen(client)
+	{
+		client = cast_stack<libwebsock_client>client;
+		this = retrieveUserdata(client);
+
+		if(onopen)
+			onopen(userdata, client);
+	}
+	private _onclose(client)
+	{
+		client = cast_stack<libwebsock_client>client;
+		this = retrieveUserdata(client);
+
+		if(onclose)
+			onclose(userdata, client);
+	}
+	private _onmessage(client, msg)
+	{
+		client = cast_stack<libwebsock_client>client;
+		this = retrieveUserdata(client);
+
+		if(onmessage)
+		{
+			msg = cast_stack<libwebsock_message>msg;
+			onmessage(userdata, client, msg.payload[0 .. msg.length], msg.opcode);
+		}
+	}
+
+	broadcast(msg)
+	{
+		libwebsock_send_all_text(socket, msg);
+	}
+
+	listen()
+	{
+		var sock = cast_stack<libwebsock_context>socket;
+		sock.onopen = bundleFunction(_onopen);
+		sock.onclose = bundleFunction(_onclose);
+		sock.onmessage = bundleFunction(_onmessage);
+		sock.userdata = this;
+
+		libwebsock_wait(socket);
+	}
+};
