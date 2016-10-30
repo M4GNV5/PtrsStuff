@@ -46,6 +46,12 @@ struct libwebsock_client
 	next : pointer;
 	prev : pointer;
 
+	get server
+	{
+		var context = cast_stack<libwebsock_context>ctx;
+		return as<struct>context.userdata;
+	}
+
 	send(msg)
 	{
 		libwebsock_send_text(this, msg);
@@ -66,11 +72,6 @@ struct libwebsock_message
 	length : ulonglong;
 	payload : native;
 };
-function retrieveUserdata(client)
-{
-	var ctx = cast_stack<libwebsock_context>(client.ctx);
-	return as<struct>ctx.userdata;
-}
 
 struct WebSocketServer
 {
@@ -97,28 +98,28 @@ struct WebSocketServer
 	private _onopen(client)
 	{
 		client = cast_stack<libwebsock_client>client;
-		this = retrieveUserdata(client);
+		this = client.server;
 
 		if(onopen)
-			onopen(userdata, client);
+			onopen(client);
 	}
 	private _onclose(client)
 	{
 		client = cast_stack<libwebsock_client>client;
-		this = retrieveUserdata(client);
+		this = client.server;
 
 		if(onclose)
-			onclose(userdata, client);
+			onclose(client);
 	}
 	private _onmessage(client, msg)
 	{
 		client = cast_stack<libwebsock_client>client;
-		this = retrieveUserdata(client);
+		this = client.server;
 
 		if(onmessage)
 		{
 			msg = cast_stack<libwebsock_message>msg;
-			onmessage(userdata, client, msg.payload[0 .. msg.length], msg.opcode);
+			onmessage(client, msg.payload[0 .. msg.length], msg.opcode);
 		}
 	}
 
