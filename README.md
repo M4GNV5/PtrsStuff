@@ -119,7 +119,8 @@ struct RegExp
 using the posix networking api directly instead of sdl_net
 ```C
 //AF constants (see `man socket` for more information)
-//AF_UNSPEC, AF_UNIX, AF_LOCAL, AF_INET, AF_INET6
+//AF_UNSPEC, AF_UNIX, AF_LOCAL, AF_INET, AF_INET6, AF_IPX, AF_NETLINK, AF_X25,
+//	AF_AX25, AF_ATMPVC, AF_APPLETALK, AF_PACKET
 
 //SOCK constants (see `man socket` for more information)
 //SOCK_STREAM, SOCK_DGRAM, SOCK_RAW, SOCK_RDM, SOCK_SEQPACKET

@@ -6,9 +6,6 @@ const INT_MAX = 0x7fffffff;
 const AI_PASSIVE = 1;
 
 const MSG_WAITALL = 256;
-const MSG_DONTWAIT = 64;
-const MSG_PEEK = 2;
-
 const POLLIN = 1;
 
 const SOCK_STREAM = 1;
@@ -21,8 +18,14 @@ const AF_UNSPEC = 0;
 const AF_UNIX = 1;
 const AF_LOCAL = 1;
 const AF_INET = 2;
+const AF_AX25 = 3;
+const AF_IPX = 4;
+const AF_APPLETALK = 5;
+const AF_ATMPVC = 8;
+const AF_X25 = 9;
 const AF_INET6 = 10;
-//TODO ...
+const AF_NETLINK = 16;
+const AF_PACKET = 17;
 
 struct pollfd
 {
@@ -225,12 +228,12 @@ struct SocketServer
 {
 	sockfd;
 
-	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM, flags = AI_PASSIVE)
+	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM)
 	{
 		if(typeof port == type<int>)
 			port = cast<native>port;
 
-		sockfd = createSocket(bind, NULL, port, socktype, family, flags);
+		sockfd = createSocket(bind, NULL, port, socktype, family, AI_PASSIVE);
 		if(sockfd == null)
 			throw "Failed to bind to %s" % port;
 
