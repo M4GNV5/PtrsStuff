@@ -41,9 +41,16 @@ struct addrinfo
 struct Socket
 {
 	sockfd;
+	private _closed = false;
+
 	buff{1024};
 	bufflen = -1;
 	buffptr = NULL;
+
+	get closed
+	{
+		return _closed;
+	}
 
 	constructor(host, port, socktype = SOCK_STREAM, family = AF_UNSPEC)
 	{
@@ -51,11 +58,9 @@ struct Socket
 			port = cast<native>port;
 
 		var hint : addrinfo();
-		//memset(hint, 0, sizeof(addrinfo));
+		memset(hint, 0, sizeof(addrinfo));
 		hint.family = family;
 		hint.socktype = socktype;
-		hint.flags = 0;
-		hint.protocol = 0;
 
 		var result = NULL;
 		var err = getaddrinfo(host, port, hint, &result);
@@ -123,13 +128,19 @@ struct Socket
 		var remaining = (buff + bufflen) - buffptr;
 		if(len > remaining)
 		{
-			memcpy(recbuff, buffptr, remaining);
-			posix_recv(sockfd, buff + remaining, len - remaining, MSG_WAITALL);
+			if(remaining > 0)
+				memcpy(recbuff, buffptr, remaining);
+			var ret = posix_recv(sockfd, recbuff + remaining, len - remaining, MSG_WAITALL);
+
+			if(ret == 0)
+				closed = true;
+			return remaining + ret;
 		}
 		else
 		{
 			memcpy(recbuff, buffptr, len);
 			buffptr += len;
+			return len;
 		}
 	}
 	readc()
@@ -140,7 +151,11 @@ struct Socket
 			buffptr = buff;
 
 			if(bufflen == 0)
-				throw "Tried to read from closed socket";
+			{
+				_closed = true;
+				return;
+			}
+
 			if(bufflen < 0 || bufflen > INT_MAX)
 				throw "Failed to read from socket";
 		}
@@ -150,12 +165,12 @@ struct Socket
 	read(buff, max, end = 0, awaitData = true)
 	{
 		var i = 0;
-		for(; i < max; i++)
-		{
-			buff[i] = readc(awaitData);
+		var val = end - 1;
 
-			if(buff[i] == end)
-				return i + 1;
+		for(; !_closed && i < max && val != end; i++)
+		{
+			val = readc(awaitData);
+			buff[i] = val;
 		}
 
 		return i;
