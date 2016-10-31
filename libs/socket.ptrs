@@ -206,14 +206,14 @@ struct Socket
 
 	 	return *buffptr++;
 	}
-	read(buff, max, end = 0, awaitData = true)
+	read(buff, max, end = 0)
 	{
 		var i = 0;
 		var val = end - 1;
 
 		for(; !_closed && i < max && val != end; i++)
 		{
-			val = readc(awaitData);
+			val = readc();
 			buff[i] = val;
 		}
 
