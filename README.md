@@ -115,48 +115,63 @@ struct RegExp
 }
 ```
 
-- `network.ptrs`:
+- `socket.ptrs`: `socket.ptrs` is the replacement of `network.ptrs`
+using the posix networking api directly instead of sdl_net
 ```C
+//AF constants (see `man socket` for more information)
+//AF_UNSPEC, AF_UNIX, AF_LOCAL, AF_INET, AF_INET6
+
+//SOCK constants (see `man socket` for more information)
+//SOCK_STREAM, SOCK_DGRAM, SOCK_RAW, SOCK_RDM, SOCK_SEQPACKET
+
+
 struct Socket
 {
-	//create a new socket connecting to host:port
-	//if createSet is false the available() function will not work
-	constructor(host, port, createSet = true);
-	disconnect();
+	//connects to 'host':'port' using the first suitable protocol that can be specified
+	//with 'family' (one of the AF_ constants) and 'socktype' (one of the SOCK_ constants)
+	constructor(host, port, family = AF_UNSPEC, socktype = SOCK_STREAM);
 
-	//returns the integer representation of the ip
-	//writes the string representation of the ip to buff optionally including the port
-	getIp(buff, includePort = false);
-	//returns the port
-	getPort();
+	//closes the connection
+	destructor();
 
-	available(timeout = 0); //check if data can be read (timeout in milliseconds)
+	//check if data can be read (timeout in milliseconds)
+	//negative timeout means infinite waiting
+	available(timeout = 0);
 
-	send(buff, len);
-	sends(string);
-	sendc(byte);
+	send(buff, len); //send 'len' bytes from 'buff'
+	sends(str); //send 'strlen(str)' bytes from 'str'
+	sendc(byte); //send one byte
 
+	//receive 'len' bytes, function will not return until 'len' bytes
+	//were received or the remote closes the connection
+	//returns count of bytes received
 	recv(buff, len);
 
-	readc(); //receive one byte
+	//receive one byte
+	readc();
 
 	//read bytes into buff until:
-	//	- 'end' byte is read
 	//	- 'max' bytes were read
-	//	- 'awaitData' is false and no more data is available
+	//	- 'end' byte is read
 	//returns count of bytes read
-	read(buff, max, end, awaitData = true);
-}
+	read(buff, max, end = 0);
+}:
 
 struct SocketServer
 {
-	constructor(port); //starts listening on port 'port'
-	destructor(); //closes the server
+	//starts listening on port 'port'
+	//	- 'backlog' specifies the maximum number of pending connections
+	//	- 'family' should be one of the AF_* constants
+	//	- 'socktype' should be one of the SOCK_* constants
+	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM);
 
-	//checks if client is available every 'checkInterval' milliseconds
-	//if 'checkInterval' <= 0 and no client is connecting it returns undefined
-	accept(checkInterval);
-}
+	//closes the server
+	destructor();
+
+	//waits for a pending connections 'timeout' milliseconds (negative means infinite)
+	//returns an instance of 'Socket' or undefined if no client connected
+	accept(timeout = -1);
+};
 ```
 
 - `websocket.ptrs`
