@@ -102,7 +102,7 @@ struct Socket
 		return _closed;
 	}
 
-	constructor(host, port, socktype = SOCK_STREAM, family = AF_UNSPEC)
+	constructor(host, port, family = AF_UNSPEC, socktype = SOCK_STREAM)
 	{
 		buffptr = buff;
 		if(host == Socket)
@@ -225,7 +225,7 @@ struct SocketServer
 {
 	sockfd;
 
-	constructor(port, backlog = 16, socktype = SOCK_STREAM, family = AF_INET, flags = AI_PASSIVE)
+	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM, flags = AI_PASSIVE)
 	{
 		if(typeof port == type<int>)
 			port = cast<native>port;
