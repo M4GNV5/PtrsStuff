@@ -1,0 +1,163 @@
+import socket, connect, close, send as posix_send, recv as posix_recv,
+	getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
+
+const INT_MAX = 0x7fffffff;
+const MSG_WAITALL = 256;
+const MSG_DONTWAIT = 64;
+const MSG_PEEK = 2;
+
+const SOCK_STREAM = 1;
+const SOCK_DGRAM = 2;
+const SOCK_RAW = 3;
+const SOCK_RDM = 4;
+const SOCK_SEQPACKET = 5;
+
+const AF_UNSPEC = 0;
+const AF_UNIX = 1;
+const AF_LOCAL = 1;
+const AF_INET = 2;
+const AF_INET6 = 10;
+//TODO ...
+
+struct sockaddr_in
+{
+	family : short;
+	port : ushort;
+	addr : ulong;
+	zero : u64;
+};
+struct addrinfo
+{
+	flags : int;
+	family : int;
+	socktype : int;
+	protocol : int;
+	addrlen : u32; //sizeof(socklen_t) == 4
+	addr : pointer; //struct sockaddr
+	name : native; //char *
+	next : native; //struct addrinfo
+};
+
+struct Socket
+{
+	sockfd;
+	buff{1024};
+	bufflen = -1;
+	buffptr = NULL;
+
+	constructor(host, port, socktype = SOCK_STREAM, family = AF_UNSPEC)
+	{
+		if(typeof port == type<int>)
+			port = cast<native>port;
+
+		var hint : addrinfo();
+		//memset(hint, 0, sizeof(addrinfo));
+		hint.family = family;
+		hint.socktype = socktype;
+		hint.flags = 0;
+		hint.protocol = 0;
+
+		var result = NULL;
+		var err = getaddrinfo(host, port, hint, &result);
+
+		var sock;
+		var curr = result;
+		while(curr != null)
+		{
+			curr = cast_stack<addrinfo>curr;
+
+			sock = socket(curr.family, curr.socktype, curr.protocol);
+			if(sock < 0 || sock > INT_MAX)
+			{
+				curr = curr.next;
+				continue;
+			}
+
+			if(connect(sock, curr.addr, curr.addrlen) == 0)
+				break;
+
+			close(sock);
+			curr = curr.next;
+		}
+
+		freeaddrinfo(result);
+		if(curr == null)
+			throw "Failed to connct to %s:%s" % host, port;
+
+		this.sockfd = sock;
+		this.buffptr = buff;
+	}
+	destructor()
+	{
+		close(sockfd);
+	}
+
+	available()
+	{
+		if(buff + bufflen <= buffptr)
+		{
+			var ret = posix_recv(sockfd, buff, 1, MSG_PEEK | MSG_WAITALL);
+			if(ret < 0 || ret > INT_MAX)
+				return false;
+		}
+
+		return true;
+	}
+
+	send(sendbuff, len, flags = 0)
+	{
+		posix_send(sockfd, sendbuff, len, flags);
+	}
+	sends(str, flags = 0)
+	{
+		posix_send(sockfd, str, strlen(str), flags);
+	}
+	sendc(c, flags = 0)
+	{
+		var sendbuff{1} = {c};
+		posix_send(sockfd, sendbuff, 1, flags);
+	}
+
+	recv(recbuff, len)
+	{
+		var remaining = (buff + bufflen) - buffptr;
+		if(len > remaining)
+		{
+			memcpy(recbuff, buffptr, remaining);
+			posix_recv(sockfd, buff + remaining, len - remaining, MSG_WAITALL);
+		}
+		else
+		{
+			memcpy(recbuff, buffptr, len);
+			buffptr += len;
+		}
+	}
+	readc()
+	{
+		if(buff + bufflen <= buffptr)
+		{
+			bufflen = posix_recv(sockfd, buff, 1024, 0);
+			buffptr = buff;
+
+			if(bufflen == 0)
+				throw "Tried to read from closed socket";
+			if(bufflen < 0 || bufflen > INT_MAX)
+				throw "Failed to read from socket";
+		}
+
+	 	return *buffptr++;
+	}
+	read(buff, max, end = 0, awaitData = true)
+	{
+		var i = 0;
+		for(; i < max; i++)
+		{
+			buff[i] = readc(awaitData);
+
+			if(buff[i] == end)
+				return i + 1;
+		}
+
+		return i;
+	}
+};
