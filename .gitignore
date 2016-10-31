@@ -1,0 +1,5 @@
+#directory containing native libs
+/bin
+
+#temporary test file
+/test.ptrs
