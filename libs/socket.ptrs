@@ -1,13 +1,15 @@
-import socket, connect, close, poll, send as posix_send, recv as posix_recv,
-	getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
+import bind, listen, connect, accept as posix_accept, send as posix_send, recv as posix_recv,
+	socket, close, poll, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
 
 const INT_MAX = 0x7fffffff;
+
+const AI_PASSIVE = 1;
+
 const MSG_WAITALL = 256;
 const MSG_DONTWAIT = 64;
 const MSG_PEEK = 2;
 
 const POLLIN = 1;
-const POLLHUP = 16;
 
 const SOCK_STREAM = 1;
 const SOCK_DGRAM = 2;
@@ -46,6 +48,44 @@ struct addrinfo
 	next : native; //struct addrinfo
 };
 
+function createSocket(creator, host, port, socktype, family, flags)
+{
+	var hint : addrinfo();
+	memset(hint, 0, sizeof(addrinfo));
+	hint.family = family;
+	hint.socktype = socktype;
+
+	var result = NULL;
+	var err = getaddrinfo(host, port, hint, &result);
+
+	var sock;
+	var curr = result;
+	while(curr != null)
+	{
+		curr = cast_stack<addrinfo>curr;
+
+		sock = socket(curr.family, curr.socktype, curr.protocol);
+		if(sock < 0 || sock > INT_MAX)
+		{
+			curr = curr.next;
+			continue;
+		}
+
+		if(creator(sock, curr.addr, curr.addrlen) == 0)
+			break;
+
+		close(sock);
+		curr = curr.next;
+	}
+
+	freeaddrinfo(result);
+
+	if(curr == null)
+		return null;
+	else
+		return sock;
+}
+
 struct Socket
 {
 	sockfd;
@@ -55,6 +95,8 @@ struct Socket
 	bufflen = -1;
 	buffptr = NULL;
 
+	//TODO implement ip
+
 	get closed
 	{
 		return _closed;
@@ -62,43 +104,16 @@ struct Socket
 
 	constructor(host, port, socktype = SOCK_STREAM, family = AF_UNSPEC)
 	{
+		buffptr = buff;
+		if(host == Socket)
+			return; //manual construction (e.g. via SocketServer)
+
 		if(typeof port == type<int>)
 			port = cast<native>port;
 
-		var hint : addrinfo();
-		memset(hint, 0, sizeof(addrinfo));
-		hint.family = family;
-		hint.socktype = socktype;
-
-		var result = NULL;
-		var err = getaddrinfo(host, port, hint, &result);
-
-		var sock;
-		var curr = result;
-		while(curr != null)
-		{
-			curr = cast_stack<addrinfo>curr;
-
-			sock = socket(curr.family, curr.socktype, curr.protocol);
-			if(sock < 0 || sock > INT_MAX)
-			{
-				curr = curr.next;
-				continue;
-			}
-
-			if(connect(sock, curr.addr, curr.addrlen) == 0)
-				break;
-
-			close(sock);
-			curr = curr.next;
-		}
-
-		freeaddrinfo(result);
-		if(curr == null)
+		sockfd = createSocket(connect, host, port, socktype, family, 0);
+		if(sockfd == null)
 			throw "Failed to connct to %s:%s" % host, port;
-
-		this.sockfd = sock;
-		this.buffptr = buff;
 	}
 	destructor()
 	{
@@ -203,5 +218,43 @@ struct Socket
 		}
 
 		return i;
+	}
+};
+
+struct SocketServer
+{
+	sockfd;
+
+	constructor(port, backlog = 16, socktype = SOCK_STREAM, family = AF_INET, flags = AI_PASSIVE)
+	{
+		if(typeof port == type<int>)
+			port = cast<native>port;
+
+		sockfd = createSocket(bind, NULL, port, socktype, family, flags);
+		if(sockfd == null)
+			throw "Failed to bind to %s" % port;
+
+		if(listen(sockfd, backlog) != 0)
+			throw "Failed to listen on port %s" % port;
+	}
+
+	accept(timeout = -1)
+	{
+		var fds : pollfd(sockfd, POLLIN);
+		var ret = poll(fds, 1, timeout);
+
+		if(ret == 0)
+			return;
+		else if(ret < 0 || ret > INT_MAX)
+			throw "Failed to poll socket";
+
+		var fd = posix_accept(sockfd, NULL, NULL); //TODO implement ip
+		if(fd < 0 || fd > INT_MAX)
+			throw "Failed to accept client";
+
+		var sock = new Socket(Socket);
+		sock.sockfd = fd;
+
+		return sock;
 	}
 };
