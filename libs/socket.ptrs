@@ -111,14 +111,23 @@ struct Socket
 
 	send(sendbuff, len, flags = 0)
 	{
+		if(_closed)
+			throw "Cannot send with closed socket";
+
 		posix_send(sockfd, sendbuff, len, flags);
 	}
 	sends(str, flags = 0)
 	{
+		if(_closed)
+			throw "Cannot send with closed socket";
+
 		posix_send(sockfd, str, strlen(str), flags);
 	}
 	sendc(c, flags = 0)
 	{
+		if(_closed)
+			throw "Cannot send with closed socket";
+
 		var sendbuff{1} = {c};
 		posix_send(sockfd, sendbuff, 1, flags);
 	}
@@ -128,6 +137,9 @@ struct Socket
 		var remaining = (buff + bufflen) - buffptr;
 		if(len > remaining)
 		{
+			if(_closed)
+				throw "Cannot read from closed socket";
+
 			if(remaining > 0)
 				memcpy(recbuff, buffptr, remaining);
 			var ret = posix_recv(sockfd, recbuff + remaining, len - remaining, MSG_WAITALL);
@@ -147,6 +159,9 @@ struct Socket
 	{
 		if(buff + bufflen <= buffptr)
 		{
+			if(_closed)
+				throw "Cannot read from closed socket";
+
 			bufflen = posix_recv(sockfd, buff, 1024, 0);
 			buffptr = buff;
 
