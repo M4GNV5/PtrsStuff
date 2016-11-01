@@ -39,6 +39,7 @@ struct pollfd
 		events = _events;
 	}
 };
+
 struct addrinfo
 {
 	flags : int;
@@ -50,13 +51,6 @@ struct addrinfo
 	name : native; //char *
 	next : native; //struct addrinfo
 };
-struct sockaddr
-{
-	family : short;
-	port : ushort;
-	data{12};
-};
-
 function createSocket(creator, host, port, socktype, family, flags)
 {
 	var hint : addrinfo();
@@ -94,6 +88,27 @@ function createSocket(creator, host, port, socktype, family, flags)
 		return null;
 	else
 		return sock;
+}
+
+struct sockaddr
+{
+	family : short;
+	port : ushort;
+	data{12};
+};
+function getSocketIp(sockfd, buff)
+{
+	var addr : sockaddr();
+	var len = sizeof(sockaddr);
+
+	if(getsockname(sockfd, addr, &len) != 0)
+		throw "Failed to receive address";
+
+	if(addr.family != AF_INET && addr.family != AF_INET6)
+		throw "getIp can only be called on sockets using AF_INET or AF_INET6";
+
+	if(inet_ntop(addr.family, addr.data, buff, len) == NULL)
+		throw "Failed to convert address";
 }
 
 struct Socket
@@ -134,19 +149,9 @@ struct Socket
 			close(sockfd);
 	}
 
-	getIp(buff)
+	getIp(ipBuff)
 	{
-		var addr : sockaddr();
-		var len = sizeof(sockaddr);
-
-		if(getsockname(sockfd, addr, &len) != 0)
-			throw "Failed to receive address";
-
-		if(addr.family != AF_INET && addr.family != AF_INET6)
-			throw "getIp can only be called on sockets type AF_INET or AF_INET6";
-
-		if(inet_ntop(addr.family, addr.data, buff, len) == NULL)
-			throw "Failed to convert address";
+		getSocketIp(sockfd, ipBuff);
 	}
 
 	available(timeout = 0)
@@ -276,6 +281,11 @@ struct SocketServer
 	{
 		if(sockfd != null)
 			close(sockfd);
+	}
+
+	getIp(ipBuff)
+	{
+		getSocketIp(sockfd, ipBuff);
 	}
 
 	accept(timeout = -1)
