@@ -1,5 +1,5 @@
 import bind, listen, connect, accept as posix_accept, send as posix_send, recv as posix_recv,
-	socket, close, poll, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
+	socket, close, poll, getsockname, inet_ntop, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
 
 const INT_MAX = 0x7fffffff;
 
@@ -46,9 +46,15 @@ struct addrinfo
 	socktype : int;
 	protocol : int;
 	addrlen : u32; //sizeof(socklen_t) == 4
-	addr : pointer; //struct sockaddr
+	addr : native; //struct sockaddr
 	name : native; //char *
 	next : native; //struct addrinfo
+};
+struct sockaddr
+{
+	family : short;
+	port : ushort;
+	data{12};
 };
 
 function createSocket(creator, host, port, socktype, family, flags)
@@ -125,6 +131,21 @@ struct Socket
 	{
 		if(sockfd != null)
 			close(sockfd);
+	}
+
+	getIp(buff)
+	{
+		var addr : sockaddr_in();
+		var len = sizeof(sockaddr_in);
+
+		if(getsockname(sockfd, addr, &len) != 0)
+			throw "Failed to receive address";
+
+		if(addr.family != AF_INET && addr.family != AF_INET6)
+			throw "getIp can only be called on sockets type AF_INET or AF_INET6";
+
+		if(inet_ntop(addr.family, addr.data, buff, len) == NULL)
+			throw "Failed to convert address";
 	}
 
 	available(timeout = 0)
@@ -252,7 +273,7 @@ struct SocketServer
 	}
 	destructor()
 	{
-		if(sock != null)
+		if(sockfd != null)
 			close(sockfd);
 	}
 
