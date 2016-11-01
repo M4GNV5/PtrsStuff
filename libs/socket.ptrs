@@ -1,5 +1,5 @@
-import bind, listen, connect, accept as posix_accept, send as posix_send, recv as posix_recv,
-	socket, close, poll, getsockname, inet_ntop, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
+import poll, bind, listen, connect, accept as posix_accept, send as posix_send, recv as posix_recv,
+	socket, close, getsockname, getpeername, inet_ntop, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
 
 const INT_MAX = 0x7fffffff;
 
@@ -96,16 +96,16 @@ struct sockaddr
 	port : ushort;
 	data{12};
 };
-function getSocketIp(sockfd, buff)
+function getSocketIp(getname, sockfd, buff)
 {
 	var addr : sockaddr();
 	var len = sizeof(sockaddr);
 
-	if(getsockname(sockfd, addr, &len) != 0)
+	if(getname(sockfd, addr, &len) != 0)
 		throw "Failed to receive address";
 
 	if(addr.family != AF_INET && addr.family != AF_INET6)
-		throw "getIp can only be called on sockets using AF_INET or AF_INET6";
+		throw "get*Address can only be called on sockets using AF_INET or AF_INET6";
 
 	if(inet_ntop(addr.family, addr.data, buff, len) == NULL)
 		throw "Failed to convert address";
@@ -149,9 +149,14 @@ struct Socket
 			close(sockfd);
 	}
 
-	getIp(ipBuff)
+	getLocalAddress(ipBuff)
 	{
-		getSocketIp(sockfd, ipBuff);
+		getSocketIp(getsockname, sockfd, ipBuff);
+	}
+
+	getRemoteAddress(ipBuff)
+	{
+		getSocketIp(getpeername, sockfd, ipBuff);
 	}
 
 	available(timeout = 0)
@@ -283,9 +288,9 @@ struct SocketServer
 			close(sockfd);
 	}
 
-	getIp(ipBuff)
+	getLocalAddress(ipBuff)
 	{
-		getSocketIp(sockfd, ipBuff);
+		getSocketIp(getsockname, sockfd, ipBuff);
 	}
 
 	accept(timeout = -1)
