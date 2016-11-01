@@ -61,6 +61,7 @@ function createSocket(creator, host, port, socktype, family, flags)
 {
 	var hint : addrinfo();
 	memset(hint, 0, sizeof(addrinfo));
+	hint.flags = flags;
 	hint.family = family;
 	hint.socktype = socktype;
 
