@@ -136,8 +136,8 @@ struct Socket
 
 	getIp(buff)
 	{
-		var addr : sockaddr_in();
-		var len = sizeof(sockaddr_in);
+		var addr : sockaddr();
+		var len = sizeof(sockaddr);
 
 		if(getsockname(sockfd, addr, &len) != 0)
 			throw "Failed to receive address";
