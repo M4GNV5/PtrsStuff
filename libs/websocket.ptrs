@@ -1,6 +1,6 @@
 //obtain source from https://github.com/payden/libwebsock
 //TODO add this as a submodule?
-import libwebsock_init, libwebsock_bind, libwebsock_wait, libwebsock_close,
+import libwebsock_init, libwebsock_bind, libwebsock_wait, libwebsock_close_with_reason,
 	libwebsock_send_binary, libwebsock_send_text, libwebsock_send_all_text from "../bin/libwebsock.so.1.0.7";
 
 asm bundleFunction
@@ -61,9 +61,9 @@ struct libwebsock_client
 		libwebsock_send_binary(this, buff, len);
 	}
 
-	close()
+	close(code = 1000, reason = NULL)
 	{
-		libwebsock_close(this);
+		libwebsock_close_with_reason(this, code, reason);
 	}
 };
 struct libwebsock_message
