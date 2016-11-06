@@ -10,64 +10,6 @@ function breakOnEof(c)
 	return c == EOF ? undefined : true;
 }
 
-//TODO add a syntax for and/or combination of filters to PointerScript
-struct AndFilter
-{
-	func1;
-	func2;
-	constructor(_func1, _func2)
-	{
-		func1 = _func1;
-		func2 = _func2;
-	}
-
-	operator val => this => any
-	{
-		if(func1(val) && func2(val))
-		{
-			if(yield val)
-				return;
-		}
-		return true;
-	}
-};
-struct OrFilter
-{
-	func1;
-	func2;
-	constructor(_func1, _func2)
-	{
-		func1 = _func1;
-		func2 = _func2;
-	}
-
-	operator val => this => any
-	{
-		if(func1(val) || func2(val))
-		{
-			if(yield val)
-				return;
-		}
-		return true;
-	}
-};
-
-struct ValueFilter
-{
-	func;
-	constructor(_func)
-	{
-		func = _func;
-	}
-
-	operator val => this => any
-	{
-		if(yield func(val))
-			return;
-		return true;
-	}
-};
-
 struct BoundFilter
 {
 	func;

@@ -125,9 +125,9 @@ function testAlgorithm()
 
 	scoped list
 		=> byChar
-		=> new_stack OrFilter(isdigit, isspace) //TODO add a syntax for this (e.g. isdigit || isspace)
+		=> isdigit || isspace
 		=> new_stack ByLine()
-		=> new_stack ValueFilter(atoi)
+		=> ? atoi
 		=> nonZero
 		=> new_stack BoundFilter(fprintf, _, 2, fd, "%d\n");
 }
