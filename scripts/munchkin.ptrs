@@ -342,7 +342,7 @@ while(true)
 				if(place < 7 && (target < 0 || target > playerCount || !player[target].alive))
 				{
 					currPlayer.card = _hand;
-					client.notice(currPlayer.nick, "Invalid target use a id announced at the beginning of the game.");
+					client.notice(currPlayer.nick, "Invalid target use an id announced at the beginning of the game.");
 				}
 				else if(!player[target].alive)
 				{
