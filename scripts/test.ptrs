@@ -1,7 +1,7 @@
 import printf, puts, free, strcmp, fopen, fclose, fprintf, atoi, isdigit, isspace;
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
-import byChar, ByLine, OrFilter, ValueFilter, BoundFilter from "../libs/algorithm.ptrs";
+import byChar, ByLine, BoundFilter from "../libs/algorithm.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
 import http_get from "../libs/http.ptrs";
