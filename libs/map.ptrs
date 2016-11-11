@@ -64,7 +64,7 @@ struct Map
 		return null;
 	}
 
-	getValue(key)
+	getValue(key, getPtr = false)
 	{
 		var entry = getEntry(key);
 
@@ -75,7 +75,7 @@ struct Map
 			return undefined;
 		}
 
-		return entry.value;
+		return getPtr ? &entry.value : entry.value;
 	}
 
 	setValue(key, val)
@@ -143,6 +143,15 @@ struct Map
 	operator this[key] = val
 	{
 		setValue(key, val);
+	}
+
+	operator &this.key
+	{
+		return getValue(key, true);
+	}
+	operator &this[key]
+	{
+		return getValue(key, true);
 	}
 
 	operator this.key(args...)

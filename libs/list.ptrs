@@ -45,6 +45,11 @@ struct List
 		else
 			this.getEntry(index).value = value;
 	}
+	operator &this[index]
+	{
+		index = cast<int>index;
+		return &(this.getEntry(index).value);
+	}
 	operator this[index](args...)
 	{
 		index = cast<int>index;

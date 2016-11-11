@@ -9,11 +9,13 @@ const MUTEX_SIZE = 64; //actually 40 but meh
 struct MutexWrap
 {
 	private wrap;
+	private allowAddress;
 	mutex{MUTEX_SIZE};
 
-	constructor(obj)
+	constructor(obj, allowAddr = false)
 	{
 		wrap = obj;
+		allowAddress = allowAddr;
 		mutex_init(mutex, NULL);
 	}
 	destructor()
@@ -51,6 +53,21 @@ struct MutexWrap
 		mutex_lock(mutex);
 		wrap[key] = val;
 		mutex_unlock(mutex);
+	}
+
+	operator &this.key
+	{
+		return &this[key];
+	}
+	operator &this[key]
+	{
+		if(!allowAddress)
+			throw "Cannot get the address of property '%s' of a mutex-wrapped object" % key;
+
+		mutex_lock(mutex);
+		var ptr = &wrap[key];
+		mutex_unlock(mutex);
+		return ptr;
 	}
 
 	operator this.key(args...)

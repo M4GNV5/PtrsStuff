@@ -19,7 +19,7 @@ struct Map
 
 	get count; //getter returning the count of key/value pairs in the map
 
-	getValue(key); //get a value from the map
+	getValue(key, getPtr = false); //get (the pointer to) a value from the map
 	setValue(key, val); //set a value in the map (adding a new entry if it does not exist)
 	hasValue(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
@@ -28,6 +28,8 @@ struct Map
 	operator this[key]; //same as getValue(key);
 	operator this.key = val; //same as setValue(key, val);
 	operator this[key] = val; //same as setValue(key, val);
+	operator &this.key; //same as getValue(key, true);
+	operator this[key]; //same as getValue(key, true);
 	operator this.key(args...); //same as getValue(key)(...args);
 	operator this[key](args...); //same as getValue(key)(...args);
 
@@ -45,6 +47,7 @@ struct List
 
 	operator this[index]; //get the value at 'index'
 	operator this[index] = value; //set the value at 'index' to 'value'
+	operator &this[index]; //get the pointer to the value at 'index'
 	operator this[index](args...); //get the value at 'index' and call it with 'args'
 
 	operator index in this; //same as 'index >= 0 && index < length'
@@ -220,13 +223,18 @@ struct Rcon
 struct MutexWrap
 {
 	mutex{}; //memory for a pthread_mutex
-	constructor(obj); //the obj will be thread-safely wrapped
+
+	//	'obj' will be thread-safely wrapped
+	//	if 'allowAddr' is false the &this.key and &this[key] will throw an exception
+	constructor(obj, allowAddr = false);
 
 	//locks the mutex then gets/sets/calls the property of the wrapped object
 	operator this.key;
 	operator this[key];
 	operator this.key = value;
 	operator this[key] = value;
+	operator &this.key; //note: see 'allowAddr' above
+	operator &this[key]; //note: see 'allowAddr' above
 	operator this.key(args...);
 	operator this[key](args...);
 };
