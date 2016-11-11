@@ -176,7 +176,7 @@ struct List
 		throw "Cannot remove '%s' from list: No such entry" % cast<native>val;
 	}
 
-	private _reverse(prev, next)
+	/*private _reverse(prev, next)
 	{
 		if(next.next != null)
 			_reverse(next, next.next);
@@ -189,6 +189,23 @@ struct List
 	{
 		this.last = _reverse(this.first, this.first.next);
 		this.last.next = null;
+	}*/
+
+	reverse()
+	{
+		var prev = null;
+		var curr = this.first;
+		while(curr != null)
+		{
+			var next = curr.next;
+			curr.next = prev;
+			prev = curr;
+			curr = next;
+		}
+
+		curr = this.first;
+		this.first = this.last;
+		this.last = curr;
 	}
 
 	splice(index, deleteCount, insert...)
