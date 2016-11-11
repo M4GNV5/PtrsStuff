@@ -176,6 +176,21 @@ struct List
 		throw "Cannot remove '%s' from list: No such entry" % cast<native>val;
 	}
 
+	private _reverse(prev, next)
+	{
+		if(next.next != null)
+			_reverse(next, next.next);
+		else
+			this.first = next;
+		next.next = prev;
+		return prev;
+	}
+	reverse()
+	{
+		this.last = _reverse(this.first, this.first.next);
+		this.last.next = null;
+	}
+
 	splice(index, deleteCount, insert...)
 	{
 		var prev;
