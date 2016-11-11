@@ -75,24 +75,17 @@ struct List
 
 	operator this => any
 	{
-		import printf;
-		//printf("start\n");
 		var curr = this.first;
 		while(curr != null)
 		{
-
-			//printf("curr : %s|%p|%p\n", cast<native>curr.value, curr, curr.next);
 			if(yield curr.value)
 				return;
 			curr = curr.next;
-			//printf("curr = %p\n", curr);
 		}
 		return undefined;
 	}
 	operator val => this
 	{
-		import printf;
-		printf("adding %s\n", cast<native>val);
 		this.add(val);
 	}
 
