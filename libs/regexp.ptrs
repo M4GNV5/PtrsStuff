@@ -13,10 +13,12 @@ struct RegExp
 			flags |= 4; //REG_NEWLINE
 
 		var err = regcomp(this.regex, str, flags);
-		if(err)
+		if(err != 0)
 		{
-			var buff[128];
-			regerror(err, this.regex, buff, 128);
+			var buff{512};
+			regerror(err, this.regex, buff, 512);
+
+			delete this;
 			throw buff;
 		}
 	}
