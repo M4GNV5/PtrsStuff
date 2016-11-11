@@ -1,5 +1,6 @@
 import poll, bind, listen, connect, accept as posix_accept, send as posix_send, recv as posix_recv,
-	socket, close, getsockname, getpeername, inet_ntop, getaddrinfo, freeaddrinfo, memcpy, memset, strlen;
+	socket, close, getsockname, getpeername, inet_ntop, getaddrinfo, freeaddrinfo,
+	memcpy, memset, strlen, malloc, realloc, free;
 
 const INT_MAX = 0x7fffffff;
 
@@ -311,5 +312,122 @@ struct SocketServer
 		sock.sockfd = fd;
 
 		return sock;
+	}
+};
+
+struct SocketSet
+{
+	private max = 0;
+	private length = 0;
+	private sockets = null;
+	private fds = null;
+	private freeIndex = -1;
+
+	get capaticity
+	{
+		return max;
+	}
+	get count
+	{
+		return length;
+	}
+
+	constructor(startMax = 16)
+	{
+		max = cast<int>startMax;
+		fds = as<native>malloc(sizeof(pollfd) * max);
+		sockets = as<pointer>malloc(VARSIZE * max);
+	}
+	destructor()
+	{
+		free(fds);
+		free(sockets);
+	}
+
+	operator foreach in this
+	{
+		for(var i = 0; i < length; i++)
+		{
+			if(typeof sockets[i] != type<struct>)
+				continue;
+			if(yield sockets[i])
+				return;
+		}
+	}
+
+	add(val)
+	{
+		var fd;
+		if(val instanceof Socket || val instanceof SocketServer)
+			fd = val.sockfd;
+		else
+			fd = val;
+
+		if(typeof fd != type<int>)
+			throw "Values provided to SocketSet.add must be Socket's, SocketServer's or file descriptors";
+
+		var index;
+
+		if(freeIndex >= 0)
+		{
+			length++;
+			index = freeIndex;
+			freeIndex = sockets[index];
+		}
+		else if(length < max)
+		{
+			index = length++;
+		}
+		else
+		{
+			max *= 2;
+			index = length++;
+			fds = realloc(fds, sizeof(pollfd) * max);
+			sockets = realloc(sockets, VARSIZE * max);
+		}
+
+		var pollInfo = cast_stack<pollfd>(fds + sizeof(pollfd) * index);
+		sockets[index] = val;
+
+		pollInfo.fd = fd;
+		pollInfo.events = POLLIN;
+		pollInfo.revents = 0;
+	}
+
+	remove(val)
+	{
+		for(var i = 0; i < length; i++)
+		{
+			if(val == sockets[i])
+			{
+				var pollInfo = cast_stack<pollfd>(fds + sizeof(pollfd) * i);
+				pollInfo.fd = -1;
+
+				sockets[i] = freeIndex;
+				freeIndex = i;
+				length--;
+				return;
+			}
+		}
+
+		throw "Trying to remove a value that is not in the SocketSet";
+	}
+
+	check(timeout = -1)
+	{
+		var ret = poll(fds, length, timeout);
+		if(ret < 0 || ret > INT_MAX)
+			throw "Failed to poll SocketSet";
+		else if(ret == 0)
+			return;
+
+		for(var i = 0; i < length; i++)
+		{
+			var pollInfo = cast_stack<pollfd>(fds + sizeof(pollfd) * i);
+			if(pollInfo.revents & POLLIN)
+				return sockets[i];
+		}
+
+		throw "poll returned %d but no pollfd has POLLIN set" % ret;
 	}
 };

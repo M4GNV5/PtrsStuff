@@ -176,6 +176,22 @@ struct SocketServer
 	//returns an instance of 'Socket' or undefined if no client connected
 	accept(timeout = -1);
 };
+
+struct SocketSet
+{
+	get count; //current length
+	get capaticity; //current capaticity (autmatically increased when full and calling 'add')
+
+	constructor(startMax = 16); //'startMax' defines the starting capaticity
+	destructor(); //frees up the array of sockets
+
+	operator foreach in this; //iterate over all Socket's and SocketServer's in the set
+
+	add(val); //add a Socket, SocketServer or file descriptor
+	remove(value); //remove a value from the set
+
+	check(timeout = -1); //wait for available data on one of the sockets and return that socket
+};
 ```
 
 - `websocket.ptrs`
