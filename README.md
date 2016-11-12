@@ -138,6 +138,9 @@ struct Socket
 	//closes the connection
 	destructor();
 
+	getLocalAddress(buff); //puts the string representation of the local address into 'buff'
+	getRemoteAddress(buff); //puts the string representation of the remote address into 'buff'
+
 	//check if data can be read (timeout in milliseconds)
 	//negative timeout means infinite waiting
 	available(timeout = 0);
@@ -171,6 +174,9 @@ struct SocketServer
 
 	//closes the server
 	destructor();
+
+	//puts the string representation of the local address into 'buff'
+	getLocalAddress(buff);
 
 	//waits for a pending connections 'timeout' milliseconds (negative means infinite)
 	//returns an instance of 'Socket' or undefined if no client connected
