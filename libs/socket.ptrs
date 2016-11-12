@@ -121,8 +121,6 @@ struct Socket
 	bufflen = -1;
 	buffptr = NULL;
 
-	//TODO implement ip
-
 	get closed
 	{
 		return _closed;
@@ -258,6 +256,26 @@ struct Socket
 		}
 
 		return i;
+	}
+
+	operator this => any
+	{
+		while(!_closed)
+		{
+			if(yield readc())
+				return;
+		}
+	}
+
+	operator val => this
+	{
+		var typ = typeof val;
+		if(typ == type<int> || typ == type<float>)
+			sendc(val);
+		else if(typ == type<native>)
+			sends(val);
+		else
+			throw "Cannot pipe a variable of type %d to a socket in an algorithm" % typ;
 	}
 };
 
