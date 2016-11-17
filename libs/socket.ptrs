@@ -121,6 +121,8 @@ struct Socket
 	bufflen = -1;
 	buffptr = NULL;
 
+	userdata = undefined;
+
 	get closed
 	{
 		return _closed;
@@ -282,6 +284,7 @@ struct Socket
 struct SocketServer
 {
 	sockfd;
+	userdata = undefined;
 
 	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM)
 	{
