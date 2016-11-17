@@ -1,123 +1,123 @@
-import usleep, strdup, strcpy, isprint, sprintf, printf, free;
-import SocketServer from "../libs/network.ptrs";
-import List from "../libs/list.ptrs";
+import strcpy, isprint, isspace, printf;
+import SocketServer, SocketSet from "../libs/socket.ptrs";
 
-var port = 3112;
-var clients = new List();
+const port = 3112;
 var server = new SocketServer(port);
+var sockset = new SocketSet();
 var broadcast;
+
+sockset.add(server);
 
 struct Client
 {
 	nick{16};
-	socket;
 	antiSpam = 0;
 
 	destructor()
 	{
-		if(this.socket)
-			delete this.socket;
-
-		broadcast(this.nick, '-', "left");
+		broadcast(nick, '-', "left");
 	}
 };
 
-function broadcast(nick, splitter, msg)
+function broadcast(nick, splitter, buff)
 {
-	var buff{512};
-	sprintf(buff, "%-10.10s %c %s\n", nick, splitter, msg);
-	printf("%s", buff);
+	var msg = "%-10.10s %c %s\n" % nick, splitter, buff;
+	printf("%s", msg);
 
-	foreach(client, i in clients)
+	foreach(sock in sockset)
 	{
 		try
 		{
-			if(client.nick[0] != 1)
-				client.socket.sends(buff);
+			if(sock != server && sock.userdata.nick[0] != 0)
+				sock.sends(msg);
 		}
 		catch(e)
 		{
-			printf("/!\\ %-6.6s ! %s\n", client.nick, e);
+			printf("/!\\ %-6.6s ! %s\n", sock.userdata.nick, e);
 		}
 	}
 }
 
 while(true)
 {
-	foreach(client, i in clients)
+	var sock = sockset.check();
+	var client = sock.userdata;
+
+	try
 	{
-		if(client.antiSpam > 0)
-			client.antiSpam--;
-
-		var sock = client.socket;
-		try
+		if(sock == server)
 		{
-			if(sock.available())
+			sock = server.accept();
+
+			var client = new Client();
+			client.nick[0] = 0;
+			sock.userdata = client;
+			sockset.add(sock);
+
+			sock.sends("Welcome to this simple chat written in PointerScript\n");
+			sock.sends("You can read the source at http://bit.ly/1XaCDlz\nCurrently online: ");
+			foreach(c in sockset)
 			{
-				var buff{256};
-				var count = sock.read(buff, 255, '\n');
-				buff[count - 1] = 0;
-				var splitter = ':';
-
-				var spaceOnly = true;
-				function isSpaceOnly(c)
+				if(c != server && c.userdata.nick[0] != 0)
 				{
-					if(c != ' ')
-						spaceOnly = false;
-					return true;
+					sock.sends(c.userdata.nick);
+					sock.sends(", ");
 				}
-
-				buff[0 .. count] => isprint => isSpaceOnly => buff;
-
-				client.antiSpam += 10;
-				if(spaceOnly || client.antiSpam > 19)
-					continue;
-
-				if(client.nick[0] == 1)
-				{
-					buff[15] = 0;
-					strcpy(client.nick, buff, 16);
-					strcpy(buff, "joined");
-					splitter = '-';
-				}
-				broadcast(client.nick, splitter, buff);
 			}
-
-			if(!sock.connected)
-			{
-				clients.remove(i);
-				delete client;
-				break;
-			}
+			sock.sends("\nType your nickname: ");
 		}
-		catch(e, trace)
+		else
 		{
-			printf("/!\\ %-6.6s ! %s\n%s", client.nick, e, trace);
-			delete clients.remove(i);
-			break;
+			var buff{256};
+			var splitter = ':';
+
+			var len = 0;
+			var spaceOnly = true;
+			function filter(c)
+			{
+				if(sock.closed)
+					return undefined;
+
+				if(!isspace(c))
+					spaceOnly = false;
+				if(c == '\n')
+					return undefined;
+
+				len++;
+				return true;
+			}
+
+			sock => filter => isprint => buff;
+			buff[len] = 0;
+
+			if(sock.closed)
+			{
+				sockset.remove(sock);
+				delete sock.userdata;
+				delete sock;
+				continue;
+			}
+
+			client.antiSpam += 10;
+			//if(spaceOnly || client.antiSpam > 19)
+			//	continue;
+
+			if(client.nick[0] == 0)
+			{
+				buff[15] = 0;
+				strcpy(client.nick, buff, 16);
+				strcpy(buff, "joined");
+				splitter = '-';
+			}
+			broadcast(client.nick, splitter, buff);
 		}
 	}
-
-	var sock = server.accept();
-	if(sock)
+	catch(e, trace)
 	{
-		var client = new Client();
-		client.nick[0] = 1;
-		client.socket = sock;
+		printf("/!\\ %-6.6s ! %s\n%s", client ? client.nick : "?", e, trace);
 
-		sock.sends("Welcome to this simple chat written in PointerScript\n");
-		sock.sends("You can read the source at http://bit.ly/1XaCDlz\nCurrently online: ");
-		foreach(c in clients)
-		{
-			if(c.nick[0] != 1)
-			{
-				sock.sends(c.nick);
-				sock.sends(", ");
-			}
-		}
-		sock.sends("\nType your nickname: ");
-		clients.add(client);
+		sockset.remove(sock);
+		delete client;
+		delete sock;
 	}
-
-	usleep(100000);
 }
