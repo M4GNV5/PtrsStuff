@@ -52,7 +52,7 @@ struct List
 
 	operator index in this; //same as 'index >= 0 && index < length'
 	operator sizeof this; //same as 'get length'
-	operator foreach in this; //iterate over the list (yields value, index, &value)
+	operator foreach in this; //iterate over the list (yields index, value, &value)
 
 	operator this => any; //use a list as an input for an algorithm expression
 	operator val => this; //use a list as an output for an algorithm expression
@@ -61,13 +61,14 @@ struct List
 	removeAt(index); //removes value at 'index' and returns it
 	remove(value, compare = (a, b) -> a == b); //removes the first occurence of 'value' from the list
 	splice(index, removeCount, insert...); //remove and/or add multiple values
+	reverse(); //reverses the list
 
 	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
 	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
 
 	//create a new List from an array
 	static fromArray(buff, length = sizeof buff);
-	//write the entries of a list to the array. Returns a malloc'ed array if 'buff' is NULL or undefined
+	//write the entries of a list to the array. If 'buff' is NULL or undefined it returns a malloc'ed array
 	toArray(buff, max);
 }
 ```
