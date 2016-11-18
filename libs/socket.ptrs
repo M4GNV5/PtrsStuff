@@ -214,7 +214,7 @@ struct Socket
 			var ret = posix_recv(sockfd, recbuff + remaining, len - remaining, MSG_WAITALL);
 
 			if(ret == 0)
-				closed = true;
+				_closed = true;
 			return remaining + ret;
 		}
 		else
@@ -251,9 +251,12 @@ struct Socket
 		var i = 0;
 		var val = end - 1;
 
-		for(; !_closed && i < max && val != end; i++)
+		for(; i < max && val != end; i++)
 		{
 			val = readc();
+			if(_closed)
+				return i;
+
 			buff[i] = val;
 		}
 
@@ -262,9 +265,13 @@ struct Socket
 
 	operator this => any
 	{
-		while(!_closed)
+		while(true)
 		{
-			if(yield readc())
+			var val = readc();
+			if(_closed)
+				return;
+
+			if(yield val)
 				return;
 		}
 	}
