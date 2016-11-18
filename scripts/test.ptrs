@@ -30,7 +30,7 @@ function dumpValue(mappy, indent = 0)
 	}
 	else if(mappy instanceof List)
 	{
-		foreach(val, i in mappy)
+		foreach(i, val in mappy)
 		{
 			for(var i = 0; i < indent; i++)
 				printf(" ");

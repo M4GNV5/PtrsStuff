@@ -72,7 +72,7 @@ struct List
 		while(curr != null)
 		{
 			var next = curr.next;
-			if(yield curr.value, i++, &curr.value)
+			if(yield i++, curr.value, &curr.value)
 				return;
 			curr = next;
 		}
