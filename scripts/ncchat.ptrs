@@ -75,9 +75,6 @@ while(true)
 			var spaceOnly = true;
 			function filter(c)
 			{
-				if(sock.closed)
-					return undefined;
-
 				if(!isspace(c))
 					spaceOnly = false;
 				if(c == '\n')
@@ -98,7 +95,7 @@ while(true)
 				continue;
 			}
 
-			client.antiSpam += 10;
+			//client.antiSpam += 10;
 			//if(spaceOnly || client.antiSpam > 19)
 			//	continue;
 
