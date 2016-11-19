@@ -183,22 +183,18 @@ struct Socket
 		if(_closed)
 			throw "Cannot send with closed socket";
 
-		posix_send(sockfd, sendbuff, len, flags);
+		var ret = posix_send(sockfd, sendbuff, len, flags);
+		if(ret < 0 || ret >= INT_MAX)
+			_closed = true;
 	}
 	sends(str, flags = 0)
 	{
-		if(_closed)
-			throw "Cannot send with closed socket";
-
-		posix_send(sockfd, str, strlen(str), flags);
+		send(str, strlen(str), flags);
 	}
 	sendc(c, flags = 0)
 	{
-		if(_closed)
-			throw "Cannot send with closed socket";
-
 		var sendbuff{1} = {c};
-		posix_send(sockfd, sendbuff, 1, flags);
+		send(sendbuff, 1, flags);
 	}
 
 	recv(recbuff, len)
