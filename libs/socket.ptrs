@@ -141,7 +141,7 @@ struct Socket
 		if(sockfd == null)
 		{
 			delete this;
-			throw "Failed to connct to %s:%s" % host, port;
+			throw "Failed to connect to %s:%s" % host, port;
 		}
 	}
 	destructor()
