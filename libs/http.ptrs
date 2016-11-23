@@ -55,6 +55,8 @@ struct HttpResponse
 			memcpy(this.content + timesRead * 1024, buff, count);
 			timesRead++;
 		}
+
+		this.content = this.content[0 .. timesRead * 1024 + count + 1];
 		this.content[timesRead * 1024 + count] = 0;
 	}
 };

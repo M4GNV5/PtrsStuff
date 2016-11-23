@@ -70,8 +70,8 @@ struct RegExp
 			totalLen += VARSIZE + len + 1;
 		}
 
-		var buff = as<native>malloc(totalLen);
-		var buffptr = as<pointer>buff;
+		var buff = malloc!native(totalLen)[0 .. totalLen];
+		var buffptr = (as<pointer>buff)[0 .. actualMatches];
 		buff += actualMatches * VARSIZE;
 
 		for(var i = 0; i < actualMatches - 1; i++)

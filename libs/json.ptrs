@@ -25,8 +25,10 @@ function json_encode(val)
 	}
 	else if(typeof val == type<native>)
 	{
-		var key{2} = {0, 0};
 		var len = strlen(val);
+		val = val[0 .. len];
+
+		var key{2} = {0, 0};
 		var escapeLen = 0;
 		for(var i = 0; i < len; i++)
 		{
@@ -37,7 +39,8 @@ function json_encode(val)
 				escapeLen += 6;
 		}
 
-		var buff = as<native>malloc(3 + len + escapeLen);
+		var bufflen = 3 + len + escapeLen;
+		var buff = malloc!native(bufflen)[0 .. bufflen];
 		var buffptr = buff;
 		*buffptr++ = '"';
 
@@ -72,7 +75,7 @@ function json_encode(val)
 			len += strlen(strings[i]) + 1;
 		}
 
-		var buff = as<native>malloc(len);
+		var buff = malloc!native(len)[0 .. len];
 		buff[0] = '[';
 		var buffptr = buff + 1;
 
@@ -105,7 +108,7 @@ function json_encode(val)
 			i++;
 		}
 
-		var buff = as<native>malloc(len);
+		var buff = malloc!native(len)[0 .. len];
 		buff[0] = '{';
 		var buffptr = buff + 1;
 
@@ -152,7 +155,7 @@ function json_decode(str)
 		max = max || len;
 
 		if(typeof buff == type<undefined>)
-			buff = as<native>malloc(len + 1);
+			buff = malloc!native(len + 1)[0 .. len + 1];
 		if(max < len)
 			len = max - 1;
 
