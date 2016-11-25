@@ -1,4 +1,4 @@
-import sprintf, strncpy, strlen, malloc, strdup, free, strncmp, strtod;
+import sprintf, strncpy, strlen, strdup, free, strncmp, strtod;
 import Map from "./map.ptrs";
 import List from "./list.ptrs";
 
@@ -39,8 +39,7 @@ function json_encode(val)
 				escapeLen += 6;
 		}
 
-		var bufflen = 3 + len + escapeLen;
-		var buff = malloc!native(bufflen)[0 .. bufflen];
+		var buff = new array{3 + len + escapeLen};
 		var buffptr = buff;
 		*buffptr++ = '"';
 
@@ -75,7 +74,7 @@ function json_encode(val)
 			len += strlen(strings[i]) + 1;
 		}
 
-		var buff = malloc!native(len)[0 .. len];
+		var buff = new array{len};
 		buff[0] = '[';
 		var buffptr = buff + 1;
 
@@ -108,7 +107,7 @@ function json_encode(val)
 			i++;
 		}
 
-		var buff = malloc!native(len)[0 .. len];
+		var buff = new array{len};
 		buff[0] = '{';
 		var buffptr = buff + 1;
 
@@ -155,7 +154,7 @@ function json_decode(str)
 		max = max || len;
 
 		if(typeof buff == type<undefined>)
-			buff = malloc!native(len + 1)[0 .. len + 1];
+			buff = new array{len + 1};
 		if(max < len)
 			len = max - 1;
 

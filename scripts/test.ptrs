@@ -149,7 +149,7 @@ function testJson()
 	var instance : Test();
 	var nested : Test();
 	instance.foo = 31.12;
-	instance.bar = List.fromArray([42, "yar har", 3.1415, "fiddlededi"]);
+	instance.bar = List.fromArray(new_stack array[] [42, "yar har", 3.1415, "fiddlededi"]);
 	instance.somekey = "Hello World!";
 	instance.nested = nested;
 
