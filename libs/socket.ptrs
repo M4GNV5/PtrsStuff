@@ -359,8 +359,8 @@ struct SocketSet
 	constructor(startMax = 16)
 	{
 		max = cast<int>startMax;
-		fds = as<native>malloc(sizeof(pollfd) * max);
-		sockets = as<pointer>malloc(VARSIZE * max);
+		fds = malloc(sizeof(pollfd) * max);
+		sockets = malloc!pointer(VARSIZE * max)[0 .. max];
 	}
 	destructor()
 	{
@@ -407,7 +407,7 @@ struct SocketSet
 			max *= 2;
 			index = length++;
 			fds = realloc(fds, sizeof(pollfd) * max);
-			sockets = realloc(sockets, VARSIZE * max);
+			sockets = realloc!pointer(sockets, VARSIZE * max)[0 .. max];
 		}
 
 		var pollInfo = cast_stack<pollfd>(fds + sizeof(pollfd) * index);
