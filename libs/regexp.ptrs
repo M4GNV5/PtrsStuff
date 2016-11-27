@@ -18,7 +18,6 @@ struct RegExp
 			var buff{512};
 			regerror(err, this.regex, buff, 512);
 
-			delete this;
 			throw buff;
 		}
 	}

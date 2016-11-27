@@ -139,10 +139,7 @@ struct Socket
 
 		sockfd = createSocket(connect, host, port, socktype, family, 0);
 		if(sockfd == null)
-		{
-			delete this;
 			throw "Failed to connect to %s:%s" % host, port;
-		}
 	}
 	destructor()
 	{
@@ -296,16 +293,10 @@ struct SocketServer
 
 		sockfd = createSocket(bind, NULL, port, socktype, family, AI_PASSIVE);
 		if(sockfd == null)
-		{
-			delete this;
 			throw "Failed to bind to %s" % port;
-		}
 
 		if(listen(sockfd, backlog) != 0)
-		{
-			delete this;
 			throw "Failed to listen on port %s" % port;
-		}
 	}
 	destructor()
 	{
