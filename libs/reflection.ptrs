@@ -22,14 +22,18 @@ const MEMBER_GETTER = 4;
 const MEMBER_SETTER = 5;
 const MEMBER_TYPED = 6;
 
+const PROT_PUBLIC = 0;
+const PROT_INTERNAL = 1;
+const PROT_PRIVATE = 2;
+
 struct ptrs_nativetype_info
 {
 	name : native;
-	nativeType : u64; //enum
-	size : u64; //TODO size_t
+	size : size;
 	getHandler : native;
 	setHandler : native;
 };
+
 struct ptrs_overload
 {
 	flags : u8; //bitfield isLeftSide : 1; isStatic : 1;
@@ -37,25 +41,27 @@ struct ptrs_overload
 	handler : native; //function
 	next : native; //ptrs_overload
 };
+
 var StructInfo;
 struct MemberInfo
 { //ptrs_structlist
 	name : native;
 	offset : uint;
-	flags : u8; //bitfield isPrivate : 1; isStatic : 1;
+	namelen : u16;
+	flags : u8; //bitfield protection : 2; isStatic : 1;
 	memberType : u64; //enum type
 	memberValue : native; //union ptrs_ast, function, uint64_t, nativetype_info
 	next : native; //ptrs_structlist
-	
-	get isPrivate
+
+	get protection
 	{
-		return flags & 1 == 1;
+		return flags & 3;
 	}
 	get isStatic
 	{
-		return flags & 2 == 1;
+		return flags & 4 == 1;
 	}
-	
+
 	getValue(instance)
 	{
 		var ptr;
@@ -71,10 +77,10 @@ struct MemberInfo
 		{
 			ptr = instance;
 		}
-		
+
 		if(memberType == MEMBER_VAR)
 			return *as<pointer>(ptr + offset);
-		
+
 		switch(memberType)
 		{
 			case MEMBER_VAR:
@@ -98,7 +104,7 @@ struct MemberInfo
 				return val;
 		};
 	}
-	
+
 	setValue(instance, val)
 	{
 		var ptr;
@@ -114,7 +120,7 @@ struct MemberInfo
 		{
 			ptr = instance;
 		}
-		
+
 		switch(memberType)
 		{
 			case MEMBER_VAR:
@@ -135,6 +141,7 @@ struct MemberInfo
 		};
 	}
 };
+
 struct StructInfo
 { //ptrs_struct
 	name : native;
@@ -144,26 +151,26 @@ struct StructInfo
 	overloads : native; //ptrs_overload
 	scope : native; //ptrs_scope
 	size : int;
-	isInstance : char; //bool :(
+	isOnStack : char; //bool :(
 	staticData : pointer;
 	data : pointer;
-	
+
 	get isInstance
 	{
 		return data != NULL;
 	}
-	
-	getMember(name, allowStatic = true, allowPrivate = false)
+
+	getMember(name, allowStatic = true, protection = 0)
 	{
 		var curr = member;
 		while(curr != null)
 		{
 			var info = cast_stack<MemberInfo>curr;
 			if((allowStatic || !info.isStatic)
-				&& (allowPrivate || !info.isPrivate)
+				&& (info.protection <= protection)
 				&& strcmp(info.name, name) == 0)
 				return cast<MemberInfo>curr;
-				
+
 			curr = info.next;
 		}
 	}
