@@ -141,7 +141,7 @@ function json_decode(str)
 	function parseString(buff, max)
 	{
 		if(*str++ != '"')
-			throw "Invalid JSON, expected \" got %c" % *--str;
+			throw "Invalid JSON, expected \" got $%c{*--str}";
 
 		var ptr = str;
 		while(*str != '"' && *str != 0)
@@ -191,14 +191,14 @@ function json_decode(str)
 			return false;
 		}
 
-		throw "Invalid JSON, expected value got %c" % *str;
+		throw "Invalid JSON, expected value got $%c{*str}";
 	}
 	function parseArray()
 	{
 		var list = new List();
 
 		if(*str++ != '[')
-			throw "Invalid JSON, expected [ got %c" % *--str;
+			throw "Invalid JSON, expected [ got $%c{*--str}";
 
 		if(*str == ']')
 		{
@@ -215,7 +215,7 @@ function json_decode(str)
 			if(*str == ']')
 				break;
 			if(*str++ != ',')
-				throw "Invalid JSON, expected , got %c" % *--str;
+				throw "Invalid JSON, expected , got $%c{*--str}";
 		}
 
 		str++;
@@ -226,7 +226,7 @@ function json_decode(str)
 		var val = new Map();
 
 		if(*str++ != '{')
-			throw "Invalid JSON, expected { got %c" % *--str;
+			throw "Invalid JSON, expected { got $%c{*--str}";
 
 		if(*str == '}')
 		{
@@ -242,7 +242,7 @@ function json_decode(str)
 			skipSpaces();
 
 			if(*str++ != ':')
-				throw "Invalid JSON, expected : got %c" % *--str;
+				throw "Invalid JSON, expected : got $%c{*--str}";
 
 			skipSpaces();
 			val[key] = parseValue();
@@ -253,7 +253,7 @@ function json_decode(str)
 			if(*str == '}')
 				break;
 			if(*str++ != ',')
-				throw "Invalid JSON, expected , got %c" % *--str;
+				throw "Invalid JSON, expected , got $%c{*--str}";
 		}
 		str++;
 
@@ -263,7 +263,7 @@ function json_decode(str)
 	var parsed = parseValue();
 	skipSpaces();
 	if(*str != 0)
-		throw "Invalid JSON, expected EOF got %c" % *str;
+		throw "Invalid JSON, expected EOF got $%c{*str}";
 
 	return parsed;
 }

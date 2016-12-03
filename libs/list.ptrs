@@ -38,7 +38,7 @@ struct List
 	{
 		index = cast<int>index;
 		if(index < 0 || index > _length)
-			throw "Cannot set index %d of a list of length %d" % index, _length;
+			throw "Cannot set index $index of a list of length $_length";
 
 		if(index == _length)
 			this.add(value);
@@ -111,7 +111,7 @@ struct List
 		}
 
 		if(curr == null)
-			throw "Index %d is not in list of length %d" % index, _length;
+			throw "Index $index is not in list of length $_length";
 
 		if(previous != null)
 			*previous = prev;
@@ -178,7 +178,7 @@ struct List
 			curr = curr.next;
 		}
 
-		throw "Cannot remove '%s' from list: No such entry" % cast<native>val;
+		throw "Cannot remove '${cast<native>val}' from list: No such entry";
 	}
 
 	/*private _reverse(prev, next)

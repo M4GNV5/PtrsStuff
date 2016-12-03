@@ -71,7 +71,7 @@ struct Map
 		if(entry == null)
 		{
 			if(useThrow)
-				throw "Trying to get key '%s' which is not in this map" % key;
+				throw "Trying to get key '$key' which is not in this map";
 			return undefined;
 		}
 
@@ -110,7 +110,7 @@ struct Map
 		if(entry == null)
 		{
 			if(useThrow)
-				throw "Cannot remove non exisiting key '%s'" % key;
+				throw "Cannot remove non exisiting key '$key'";
 			return undefined;
 		}
 		else

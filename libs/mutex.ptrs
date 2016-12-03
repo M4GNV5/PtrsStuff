@@ -62,7 +62,7 @@ struct MutexWrap
 	operator &this[key]
 	{
 		if(!allowAddress)
-			throw "Cannot get the address of property '%s' of a mutex-wrapped object" % key;
+			throw "Cannot get the address of property '$key' of a mutex-wrapped object";
 
 		mutex_lock(mutex);
 		var ptr = &wrap[key];

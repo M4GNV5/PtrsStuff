@@ -82,7 +82,7 @@ function dlib_mangle(ptr, name, abi = 'F')
 		if(buff in typeMangles)
 			return typeMangles[buff];
 
-		throw "Invalid type '%s'" % buff;
+		throw "Invalid type '$buff'";
 	}
 	function mangleType(t)
 	{
@@ -121,7 +121,7 @@ function dlib_mangle(ptr, name, abi = 'F')
 	skipSpaces();
 
 	if(*name++ != '(')
-		throw "Expected ( got %c" % *--name;
+		throw "Expected ( got ${*--name}";
 
 	*ptr++ = abi;
 	skipSpaces();
@@ -136,7 +136,7 @@ function dlib_mangle(ptr, name, abi = 'F')
 			if(*name == ')')
 				break;
 			else if(*name++ != ',')
-				throw "Expected , got %c" % *--name;
+				throw "Expected , got ${*--name}";
 
 			skipSpaces();
 		}

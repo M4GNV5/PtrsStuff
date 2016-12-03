@@ -139,7 +139,7 @@ struct Socket
 
 		sockfd = createSocket(connect, host, port, socktype, family, 0);
 		if(sockfd == null)
-			throw "Failed to connect to %s:%s" % host, port;
+			throw "Failed to connect to $host:$port";
 	}
 	destructor()
 	{
@@ -277,7 +277,7 @@ struct Socket
 		else if(typ == type<native>)
 			sends(val);
 		else
-			throw "Cannot pipe a variable of type %d to a socket in an algorithm" % typ;
+			throw "Cannot pipe a variable of type $typ to a socket in an algorithm";
 	}
 };
 
@@ -293,10 +293,10 @@ struct SocketServer
 
 		sockfd = createSocket(bind, NULL, port, socktype, family, AI_PASSIVE);
 		if(sockfd == null)
-			throw "Failed to bind to %s" % port;
+			throw "Failed to bind to $port";
 
 		if(listen(sockfd, backlog) != 0)
-			throw "Failed to listen on port %s" % port;
+			throw "Failed to listen on port $port";
 	}
 	destructor()
 	{
@@ -443,6 +443,6 @@ struct SocketSet
 				return sockets[i];
 		}
 
-		throw "poll returned %d but no pollfd has POLLIN set" % ret;
+		throw "poll returned $ret but no pollfd has POLLIN set";
 	}
 };

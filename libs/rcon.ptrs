@@ -49,7 +49,7 @@ struct Rcon
 		memcpy(&id, responseBuff, 4);
 
 		if(id < 0 || id > INT_MAX)
-			throw "Rcon error: Received id %d. Invalid password?" % id;
+			throw "Rcon error: Received id $id. Invalid password?";
 		else
 			return as<native>strdup(responseBuff + 8);
 	}
