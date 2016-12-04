@@ -178,7 +178,7 @@ struct Socket
 	send(sendbuff, len, flags = 0)
 	{
 		if(_closed)
-			throw "Cannot send with closed socket";
+			throw "Cannot send to closed socket";
 
 		var ret = posix_send(sockfd, sendbuff, len, flags);
 		if(ret < 0 || ret >= INT_MAX)
