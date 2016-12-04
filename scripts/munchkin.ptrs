@@ -18,7 +18,7 @@ var player[6];
 var ingame = false;
 
 var cardPrototypes;
-var cards = {0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7};
+var cards{} = {0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 7};
 var cardIndex = -1;
 
 var broadcast;
@@ -51,8 +51,7 @@ struct Player
 	{
 		if(this.protected)
 		{
-			broadcast("%s tried to kill %s using the %s but he is protected"
-				% killer.nick, this.nick, card.name, this.nick);
+			broadcast("${killer.nick} tried to kill ${this.nick} using the ${card.bane} but he is protected");
 			return;
 		}
 
@@ -80,7 +79,7 @@ struct Player
 	}
 };
 
-cardPrototypes = [
+cardPrototypes = new array[] [
 	new Card("Potted Plant", "Guess a players card, if you're right, hes out.", (self, target, arg) ->
 	{
 		if(arg <= 1 || arg > 8)
@@ -95,15 +94,15 @@ cardPrototypes = [
 		}
 		else
 		{
-			broadcast("%s played the 1.Potted Plant and guessed that %s has the card %d.%s but was wrong" %
-				self.nick, target.nick, arg, cardPrototypes[arg - 1].name);
+			broadcast("${self.nick} played the 1.Potted Plant and guessed that ${target.nick} "
+				"has the card $arg.${cardPrototypes[arg - 1].name} but was wrong");
 		}
 		return true;
 	}),
 	new Card("Maul Rat", "Look at a hand.", (self, target) ->
 	{
-		client.notice(self.nick, "%s's handcard is %d. %s" % target.nick, target.card + 1, cardPrototypes[target.card].name);
-		broadcast("%s spy'ed %s's card using a Maul Rat." % self.nick, target.nick);
+		client.notice(self.nick, "${target.nick}'s handcard is ${target.card + 1}. ${cardPrototypes[target.card].name}");
+		broadcast("${self.nick} spy'ed ${target.nick}'s card using a Maul Rat.");
 		return true;
 	}),
 	new Card("Duck of Doom", "Compare two hands; Lower hand is out.", (self, target) ->
@@ -113,19 +112,19 @@ cardPrototypes = [
 		else if(self.card > target.card)
 			target.loose(self, cardPrototypes[2]);
 		else
-			broadcast("%s used Duck of Doom on %s but nothing happened" % self.nick, target.nick);
+			broadcast("${self.nick} used Duck of Doom on ${target.nick} but nothing happened");
 		return true;
 	}),
 	new Card("Wishing Ring", "Protection until next turn", (self, target) ->
 	{
-		broadcast("%s plays the 4.Wishing Ring on %s who is now protected until his next turn." % self.nick, target.nick);
+		broadcast("${self.nick} plays the 4.Wishing Ring on ${target.nick} who is now protected until his next turn.");
 		target.protected = true;
 		return true;
 	}),
 	new Card("Net Troll", "One player discards his or her hand", (self, target) ->
 	{
-		broadcast("%s plays the Net Troll on %s. %s discards his card %s" %
-			self.nick, target.nick, target.nick, cardPrototypes[target.card].name);
+		broadcast("${self.nick} plays the Net Troll on ${target.nick}. "
+			"${target.nick} discards his card ${cardPrototypes[target.card].name}");
 
 		if(cardPrototypes[target.card].event != null)
 			cardPrototypes[target.card].event(1, target);
@@ -133,32 +132,32 @@ cardPrototypes = [
 		{
 			target.card = draw();
 			if(ingame)
-				client.notice(target.nick, "Your new handcard is %d.%s" % target.card + 1, cardPrototypes[target.card].name);
+				client.notice(target.nick, "Your new handcard is ${target.card + 1}.${cardPrototypes[target.card].name}");
 		}
 		return true;
 	}),
 	new Card("Dread Gazebo", "Trade cards.", (self, target) ->
 	{
-		broadcast("%s plays the 6.Dread Gazebo and trades card with %s" % self.nick, target.nick);
+		broadcast("${self.nick} plays the 6.Dread Gazebo and trades card with ${target.nick}");
 
 		var tmp = target.card;
 		target.card = self.card;
 		self.card = tmp;
 
-		client.notice(self.nick, "You got the %d.%s" % self.card + 1, cardPrototypes[self.card].name);
-		client.notice(target.nick, "You got the %d.%s" % target.card + 1, cardPrototypes[target.card].name);
+		client.notice(self.nick, "You got the ${self.card + 1}.${cardPrototypes[self.card].name}");
+		client.notice(target.nick, "You got the ${target.card + 1}.${cardPrototypes[target.card].name}");
 		return true;
 	}),
 	new Card("Turbonium Dragon", "Discard if with Dread Gazebo or Net Troll", (self) ->
 	{
-		broadcast("%s plays the Turbonium Dragon" % self.nick);
+		broadcast("${self.nick} plays the Turbonium Dragon");
 		return true;
 	},
 	(id, self, other) ->
 	{
 		if(id == 0 && (other == 6 || other == 5))
 		{
-			broadcast("%s plays the Turbonium Dragon" % self.nick);
+			broadcast("${self.nick} plays the Turbonium Dragon");
 			return true;
 		}
 	}),
@@ -196,8 +195,7 @@ function draw()
 			}
 		}
 
-		broadcast("Out of cards. The winner is %s as he has the highest card %s" %
-			winner.nick, cardPrototypes[max].name);
+		broadcast("Out of cards. The winner is ${winner.nick} as he has the highest card ${cardPrototypes[max].name}");
 
 		ingame = false;
 		return;
@@ -230,7 +228,7 @@ while(true)
 		if(playerCount == 6)
 			ingame = true;
 
-		broadcast("Waiting for %d more players. Type -start to start now." % 6 - playerCount);
+		broadcast("Waiting for ${6 - playerCount} more players. Type -start to start now.");
 	}
 	else if(playerCount > 1 && strstr(message, "-start") == message)
 	{
@@ -258,8 +256,7 @@ while(true)
 			var card = draw();
 			player[i].card = card;
 
-			client.notice(player[i].nick, "Your handcard: %d.%s" %
-				card + 1, cardPrototypes[card].name);
+			client.notice(player[i].nick, "Your handcard: ${card + 1}.${cardPrototypes[card].name}");
 		}
 
 		var turn = -1;
@@ -283,7 +280,7 @@ while(true)
 			currPlayer = player[turn];
 			currPlayer.protected = false;
 
-			broadcast("It is now %s's turn." % player[turn].nick);
+			broadcast("It is now ${player[turn].nick}'s turn.");
 
 			card = draw();
 			if(!ingame)
@@ -300,8 +297,8 @@ while(true)
 					return changeTurn();
 			}
 
-			client.notice(currPlayer.nick, "It's your turn. Do you want to play %d.%s or %d.%s" %
-				card + 1, cardPrototypes[card].name, currPlayer.card + 1, cardPrototypes[currPlayer.card].name);
+			client.notice(currPlayer.nick, "It's your turn. Do you want to play ${card + 1}."
+				"${cardPrototypes[card].name} or ${currPlayer.card + 1}.${cardPrototypes[currPlayer.card].name}");
 		}
 		changeTurn();
 
@@ -317,8 +314,7 @@ while(true)
 
 				if(place != card && place != currPlayer.card)
 				{
-					client.notice(currPlayer.nick, "You dont have the card %d.%s" %
-						place + 1, cardPrototypes[place].name);
+					client.notice(currPlayer.nick, "You dont have the card ${place + 1}.${cardPrototypes[place].name}");
 					continue;
 				}
 
@@ -369,8 +365,8 @@ while(true)
 				if(message[4] != 0 && message[5] > '0' && message[5] < '9')
 				{
 					var cardId = message[5] - '0' - 1;
-					client.send(chan, "%d. %s : %s" % cardId + 1,
-						cardPrototypes[cardId].name, cardPrototypes[cardId].description);
+					client.send(chan, "${cardId + 1}. ${cardPrototypes[cardId].name} : "
+						"${cardPrototypes[cardId].description}");
 				}
 				else
 				{
