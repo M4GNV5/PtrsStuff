@@ -2,8 +2,6 @@ import poll, bind, listen, connect, accept as posix_accept, send as posix_send, 
 	socket, close, getsockname, getpeername, inet_ntop, getaddrinfo, freeaddrinfo,
 	memcpy, memset, strlen, malloc, realloc, free;
 
-const INT_MAX = 0x7fffffff;
-
 const AI_PASSIVE = 1;
 
 const MSG_WAITALL = 256;
@@ -69,8 +67,8 @@ function createSocket(creator, host, port, socktype, family, flags)
 	{
 		curr = cast_stack<addrinfo>curr;
 
-		sock = socket(curr.family, curr.socktype, curr.protocol);
-		if(sock < 0 || sock > INT_MAX)
+		sock = socket!int(curr.family, curr.socktype, curr.protocol);
+		if(sock < 0)
 		{
 			curr = curr.next;
 			continue;
@@ -162,12 +160,11 @@ struct Socket
 		if(buff + bufflen <= buffptr)
 		{
 			var fds : pollfd(sockfd, POLLIN);
-			var ret = poll(fds, 1, timeout);
+			if(poll!int(fds, 1, timeout) < 0)
+				throw "Failed to poll socket";
 
 			if(fds.revents & POLLIN)
 				return true;
-			else if(ret < 0 || ret > INT_MAX)
-				throw "Failed to poll socket";
 			else
 				return false;
 		}
@@ -180,8 +177,7 @@ struct Socket
 		if(_closed)
 			throw "Cannot send to closed socket";
 
-		var ret = posix_send(sockfd, sendbuff, len, flags);
-		if(ret < 0 || ret >= INT_MAX)
+		if(posix_send!int(sockfd, sendbuff, len, flags) < 0)
 			_closed = true;
 	}
 	sends(str, flags = 0)
@@ -224,7 +220,7 @@ struct Socket
 			if(_closed)
 				throw "Cannot read from closed socket";
 
-			bufflen = posix_recv(sockfd, buff, 1024, 0);
+			bufflen = posix_recv!int(sockfd, buff, 1024, 0);
 			buffptr = buff;
 
 			if(bufflen == 0)
@@ -233,7 +229,7 @@ struct Socket
 				return;
 			}
 
-			if(bufflen < 0 || bufflen > INT_MAX)
+			if(bufflen < 0)
 				throw "Failed to read from socket";
 		}
 
@@ -312,15 +308,15 @@ struct SocketServer
 	accept(timeout = -1)
 	{
 		var fds : pollfd(sockfd, POLLIN);
-		var ret = poll(fds, 1, timeout);
+		var ret = poll!int(fds, 1, timeout);
 
-		if(ret == 0)
-			return;
-		else if(ret < 0 || ret > INT_MAX)
+		if(ret < 0)
 			throw "Failed to poll socket";
+		else if(ret == 0)
+			return;
 
-		var fd = posix_accept(sockfd, NULL, NULL); //TODO implement ip
-		if(fd < 0 || fd > INT_MAX)
+		var fd = posix_accept!int(sockfd, NULL, NULL); //TODO implement ip
+		if(fd < 0)
 			throw "Failed to accept client";
 
 		var sock = new Socket(Socket);
@@ -430,8 +426,8 @@ struct SocketSet
 
 	check(timeout = -1)
 	{
-		var ret = poll(fds, length, timeout);
-		if(ret < 0 || ret > INT_MAX)
+		var ret = poll!int(fds, length, timeout);
+		if(ret < 0)
 			throw "Failed to poll SocketSet";
 		else if(ret == 0)
 			return;
