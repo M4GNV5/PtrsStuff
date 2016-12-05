@@ -1,5 +1,5 @@
 import realloc, free, atoi, strdup, strchr, memcpy, strncmp, strlen, strcpy;
-import Socket from "network.ptrs";
+import Socket from "socket.ptrs";
 import Map from "map.ptrs";
 
 struct HttpResponse
@@ -71,7 +71,7 @@ function http_get(url, port = 80)
 	*as<native>strchr(buff, '/') = 0;
 
 	var sock = new Socket(buff, port);
-	sock.sends("GET %s HTTP/1.0\r\n\r\n" % strchr(url + 7, '/'));
+	sock.sends("GET ${strchr(url + 7, '/')} HTTP/1.0\r\n\r\n");
 
 	var resp = new HttpResponse();
 	resp.read(sock);
