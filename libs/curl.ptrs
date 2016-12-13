@@ -1,0 +1,115 @@
+import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform, curl_easy_cleanup from "libcurl.so";
+import realloc, free, memcpy, strchr, strdup;
+import Map from "./map.ptrs";
+
+const CURL_GLOBAL_ALL = 3;
+const CURLOPT_URL = 10002;
+const CURLOPT_WRITEFUNCTION = 20011;
+const CURLOPT_WRITEDATA = 10001;
+const CURLOPT_HEADERFUNCTION = 20079;
+const CURLOPT_HEADERDATA = 10029;
+const CURLOPT_POST = 47;
+const CURLOPT_POSTFIELDS = 10015;
+const CURLOPT_POSTFIELDSIZE = 60;
+
+curl_global_init(CURL_GLOBAL_ALL);
+
+function dataWriter(buff, size, count, data)
+{
+	var len = size * count;
+	data = *as<pointer>data;
+	buff = (as<native>buff)[0 .. len];
+
+	data.addData(buff);
+	return len;
+}
+
+function headerWriter(buff, size, count, data)
+{
+	var len = size * count;
+	data = *as<pointer>data;
+	buff = (as<native>buff)[0 .. len];
+
+	var value = strchr!native(buff, ':');
+	if(value)
+	{
+		*strchr!native(buff, '\n') = 0;
+		value += 2; //skip ;
+		var name{value - buff};
+		memcpy(name, buff, sizeof(name) - 2);
+		name[sizeof(name) - 2] = 0;
+
+		data.header[name] = strdup!native(value);
+	}
+
+	return len;
+}
+
+struct HTTP
+{
+	header = null;
+	body = NULL;
+	private bodyIndex = 0;
+
+	constructor(url, keepHeader = false, postData = NULL)
+	{
+		var ctx = curl_easy_init();
+		curl_easy_setopt(ctx, CURLOPT_URL, url);
+		curl_easy_setopt(ctx, CURLOPT_WRITEFUNCTION, dataWriter);
+		curl_easy_setopt(ctx, CURLOPT_WRITEDATA, &this);
+
+		if(keepHeader)
+		{
+			header = new Map();
+			curl_easy_setopt(ctx, CURLOPT_HEADERFUNCTION, headerWriter);
+			curl_easy_setopt(ctx, CURLOPT_HEADERDATA, &this);
+		}
+
+		if(postData)
+		{
+			postData = cast<native>postData;
+			curl_easy_setopt(ctx, CURLOPT_POST, true);
+			curl_easy_setopt(ctx, CURLOPT_POSTFIELDS, postData);
+			curl_easy_setopt(ctx, CURLOPT_POSTFIELDSIZE, sizeof postData);
+		}
+
+		curl_easy_perform(ctx);
+		curl_easy_cleanup(ctx);
+	}
+	destructor()
+	{
+		free(body);
+		if(header)
+		{
+			foreach(key, val in header)
+				free(val);
+
+			delete header;
+		}
+	}
+
+	addData(buff)
+	{
+		if(sizeof body - bodyIndex < sizeof buff)
+		{
+			var len = 2 * sizeof body;
+			if(len == 0)
+				len = 1024;
+
+			body = realloc!native(body, len)[0 .. len];
+		}
+
+		memcpy(body + bodyIndex, buff, sizeof buff);
+		bodyIndex += sizeof buff;
+	}
+
+	static GET(url, keepHeader = false)
+	{
+		return new HTTP(url, keepHeader);
+	}
+
+	static POST(url, data, keepHeader = false)
+	{
+		return new HTTP(url, keepHeader, data);
+	}
+};
