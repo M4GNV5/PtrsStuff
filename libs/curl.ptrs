@@ -1,4 +1,4 @@
-import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform,
+import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform, curl_easy_strerror,
 	curl_easy_cleanup, curl_slist_append, curl_slist_free_all from "libcurl.so";
 import realloc, free, memcpy, strchr, strdup;
 import Map from "./map.ptrs";
@@ -86,11 +86,19 @@ struct HTTP
 			curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, list);
 		}
 
-		curl_easy_perform(ctx);
-		curl_easy_cleanup(ctx);
+		try
+		{
+			var res = curl_easy_perform(ctx);
+			if(res != 0)
+				throw curl_easy_strerror!native(res);
+		}
+		finally
+		{
+			curl_easy_cleanup(ctx);
 
-		if(reqHeader)
-			curl_slist_free_all(list);
+			if(reqHeader)
+				curl_slist_free_all(list);
+		}
 	}
 	destructor()
 	{
