@@ -1,0 +1,236 @@
+import HTTP from "./curl.ptrs";
+import List from "./list.ptrs";
+import Map from "./map.ptrs";
+import json_encode, json_decode, json_destroy from "./json.ptrs";
+import strdup, free;
+
+struct MessageUpdate
+{
+	id;
+	chat;
+	time;
+	senderId;
+	sender;
+	text;
+
+	constructor(data)
+	{
+		id = data.message_id;
+		chat = data.chat.id;
+
+		if("date" in data)
+			time = data.date;
+		else
+			time = 0;
+
+		senderId = data.from.id;
+		sender = strdup!native(data.from.first_name);
+
+		if("text" in data)
+			text = strdup!native(data.text);
+		else
+			text = NULL;
+	}
+	destructor()
+	{
+		free(sender);
+		free(text);
+	}
+};
+
+struct CallbackQuery
+{
+	id;
+	senderId;
+	sender;
+	message;
+	action;
+
+	private bot;
+
+	constructor(data, _bot)
+	{
+		id = strdup!native(data.id);
+		senderId = data.from.id;
+		sender = strdup!native(data.from.first_name);
+
+		message = new MessageUpdate(data.message);
+		action = strdup!native(data.data);
+
+		bot = _bot;
+	}
+	destructor()
+	{
+		delete message;
+		free(id);
+		free(sender);
+		free(action);
+	}
+
+	answer(text, alert = false)
+	{
+		var req = new Map();
+		req.callback_query_id = id;
+		req.text = text;
+
+		if(alert)
+			req.alert = true;
+
+		bot.makeRequest("answerCallbackQuery", req);
+		delete req;
+	}
+};
+
+struct InlineKeyboardRow
+{
+	list;
+	constructor()
+	{
+		list = new List();
+	}
+
+	addButton(text, action = text)
+	{
+		var elem = map { //TODO fix maps
+			text: 0,
+			callback_data: 0
+		};
+
+		elem.text = text;
+		elem.callback_data = action;
+
+		list.add(elem);
+		return this;
+	}
+};
+struct InlineKeyboard
+{
+	inline_keyboard;
+
+	constructor(init)
+	{
+		inline_keyboard = new List();
+
+		if(init)
+		{
+			foreach(i, val in init)
+				inline_keyboard[i] = val;
+		}
+	}
+
+	destructor()
+	{
+		foreach(i, row in inline_keyboard)
+		{
+			foreach(j, elem in row)
+			{
+				delete elem;
+			}
+			delete row;
+		}
+		delete inline_keyboard;
+	}
+
+	addRow()
+	{
+		var row = new InlineKeyboardRow();
+		inline_keyboard.add(row.list);
+		return row;
+	}
+};
+
+struct Telegram
+{
+	private token;
+	offset = 0;
+	constructor(_token)
+	{
+		token = _token;
+	}
+
+	makeRequest(path, data)
+	{
+		var url = "https://api.telegram.org/bot$token/$path";
+		var resp;
+		if(data)
+		{
+			if(typeof data != type<native>)
+				data = json_encode(data);
+
+			var reqHeader = map_stack {
+				"Content-Type": "application/json"
+			};
+			resp = HTTP.POST(url, data, reqHeader);
+		}
+		else
+		{
+			resp = HTTP.GET(url);
+		}
+
+		var data = undefined;
+		try
+		{
+			data = json_decode(resp.body);
+
+			if(!data.ok)
+				throw data.description;
+		}
+		finally
+		{
+			delete resp;
+		}
+
+		return data;
+	}
+
+	getUpdate()
+	{
+		var req = new Map();
+		req.limit = 1;
+		req.timeout = 0x7FFFFFFF;
+		req.allowed_updates = new_stack array[] ["message", "callback_query"];
+
+		while(true)
+		{
+			req.offset = offset;
+			var res = makeRequest("getUpdates", req);
+			if(res.result.length == 0)
+				continue;
+
+			var update = res.result[0];
+			offset = update.update_id + 1;
+
+			if("message" in update && "text" in update.message)
+			{
+				var ret = new MessageUpdate(update.message);
+				delete res;
+				return ret;
+			}
+			else if("callback_query" in update)
+			{
+				var ret = new CallbackQuery(update.callback_query, this);
+				delete res;
+				return ret;
+			}
+
+			delete res;
+		}
+	}
+
+	sendMessage(chat, msg, markup, mode)
+	{
+		var req = new Map();
+		req.chat_id = chat;
+		req.text = msg;
+
+		if(markup)
+			req.reply_markup = markup;
+		if(mode)
+			req.parse_mode = mode;
+
+		var res = makeRequest("sendMessage", req);
+		var id = res.result.message_id;
+		json_destroy(res);
+		return id;
+	}
+};
