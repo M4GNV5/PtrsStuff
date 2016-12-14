@@ -1,9 +1,11 @@
-import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform, curl_easy_cleanup from "libcurl.so";
+import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform,
+	curl_easy_cleanup, curl_slist_append, curl_slist_free_all from "libcurl.so";
 import realloc, free, memcpy, strchr, strdup;
 import Map from "./map.ptrs";
 
 const CURL_GLOBAL_ALL = 3;
 const CURLOPT_URL = 10002;
+const CURLOPT_HTTPHEADER = 10023;
 const CURLOPT_WRITEFUNCTION = 20011;
 const CURLOPT_WRITEDATA = 10001;
 const CURLOPT_HEADERFUNCTION = 20079;
@@ -51,14 +53,14 @@ struct HTTP
 	body = NULL;
 	private bodyIndex = 0;
 
-	constructor(url, keepHeader = false, postData = NULL)
+	constructor(url, reqHeader, respHeader = false, postData)
 	{
 		var ctx = curl_easy_init();
 		curl_easy_setopt(ctx, CURLOPT_URL, url);
 		curl_easy_setopt(ctx, CURLOPT_WRITEFUNCTION, dataWriter);
 		curl_easy_setopt(ctx, CURLOPT_WRITEDATA, &this);
 
-		if(keepHeader)
+		if(respHeader)
 		{
 			header = new Map();
 			curl_easy_setopt(ctx, CURLOPT_HEADERFUNCTION, headerWriter);
@@ -70,11 +72,25 @@ struct HTTP
 			postData = cast<native>postData;
 			curl_easy_setopt(ctx, CURLOPT_POST, true);
 			curl_easy_setopt(ctx, CURLOPT_POSTFIELDS, postData);
-			curl_easy_setopt(ctx, CURLOPT_POSTFIELDSIZE, sizeof postData);
+			//curl_easy_setopt(ctx, CURLOPT_POSTFIELDSIZE, sizeof postData);
+		}
+
+		var list = NULL;
+		if(reqHeader)
+		{
+			foreach(key, val in reqHeader)
+			{
+				list = curl_slist_append(list, "$key: $val");
+			}
+
+			curl_easy_setopt(ctx, CURLOPT_HTTPHEADER, list);
 		}
 
 		curl_easy_perform(ctx);
 		curl_easy_cleanup(ctx);
+
+		if(reqHeader)
+			curl_slist_free_all(list);
 	}
 	destructor()
 	{
@@ -90,7 +106,7 @@ struct HTTP
 
 	addData(buff)
 	{
-		if(sizeof body - bodyIndex < sizeof buff)
+		if(sizeof body - bodyIndex < sizeof buff - 1)
 		{
 			var len = 2 * sizeof body;
 			if(len == 0)
@@ -101,15 +117,16 @@ struct HTTP
 
 		memcpy(body + bodyIndex, buff, sizeof buff);
 		bodyIndex += sizeof buff;
+		body[bodyIndex] = 0;
 	}
 
-	static GET(url, keepHeader = false)
+	static GET(url, reqHeader, respHeader = false)
 	{
-		return new HTTP(url, keepHeader);
+		return new HTTP(url, reqHeader, respHeader);
 	}
 
-	static POST(url, data, keepHeader = false)
+	static POST(url, data, reqHeader, respHeader = false)
 	{
-		return new HTTP(url, keepHeader, data);
+		return new HTTP(url, reqHeader, respHeader, data);
 	}
 };
