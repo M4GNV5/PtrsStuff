@@ -34,7 +34,8 @@ struct MessageUpdate
 	destructor()
 	{
 		free(sender);
-		free(text);
+		if(text != NULL)
+			free(text);
 	}
 };
 
@@ -81,41 +82,14 @@ struct CallbackQuery
 	}
 };
 
-struct InlineKeyboardRow
-{
-	list;
-	constructor()
-	{
-		list = new List();
-	}
-
-	addButton(text, action = text)
-	{
-		var elem = map { //TODO fix maps
-			text: 0,
-			callback_data: 0
-		};
-
-		elem.text = text;
-		elem.callback_data = action;
-
-		list.add(elem);
-		return this;
-	}
-};
 struct InlineKeyboard
 {
 	inline_keyboard;
 
-	constructor(init)
+	constructor(rowCount = 1)
 	{
 		inline_keyboard = new List();
-
-		if(init)
-		{
-			foreach(i, val in init)
-				inline_keyboard[i] = val;
-		}
+		this.addRow(rowCount);
 	}
 
 	destructor()
@@ -131,11 +105,19 @@ struct InlineKeyboard
 		delete inline_keyboard;
 	}
 
-	addRow()
+	addRow(count = 1)
 	{
-		var row = new InlineKeyboardRow();
-		inline_keyboard.add(row.list);
-		return row;
+		for(var i = 0; i < count; i++)
+			inline_keyboard.add(new List());
+	}
+
+	addButton(row = 0, text, action = text)
+	{
+		var elem = map {
+			text: text,
+			callback_data: action
+		};
+		inline_keyboard[row].add(elem);
 	}
 };
 
@@ -185,17 +167,23 @@ struct Telegram
 
 	getUpdate()
 	{
-		var req = new Map();
-		req.limit = 1;
-		req.timeout = 0x7FFFFFFF;
-		req.allowed_updates = new_stack array[] ["message", "callback_query"];
+		var req = map_stack {
+			limit: 1,
+			timeout: 0x7FFFFFFF,
+			allowed_updates: new_stack array[] ["message", "callback_query"],
+			offset: offset
+		};
 
 		while(true)
 		{
 			req.offset = offset;
 			var res = makeRequest("getUpdates", req);
+
 			if(res.result.length == 0)
+			{
+				delete res;
 				continue;
+			}
 
 			var update = res.result[0];
 			offset = update.update_id + 1;
@@ -212,21 +200,31 @@ struct Telegram
 				delete res;
 				return ret;
 			}
-
-			delete res;
+			else
+			{
+				delete res;
+			}
 		}
 	}
 
-	sendMessage(chat, msg, markup, mode)
+	sendMessage(chat, msg, markup)
 	{
-		var req = new Map();
-		req.chat_id = chat;
-		req.text = msg;
-
+		var req;
 		if(markup)
-			req.reply_markup = markup;
-		if(mode)
-			req.parse_mode = mode;
+		{
+			req = map_stack {
+				chat_id: chat,
+				text: msg,
+				reply_markup: markup
+			};
+		}
+		else
+		{
+			req = map_stack {
+				chat_id: chat,
+				text: msg
+			};
+		}
 
 		var res = makeRequest("sendMessage", req);
 		var id = res.result.message_id;

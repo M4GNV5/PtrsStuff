@@ -17,13 +17,13 @@ struct MapEntry
 
 struct Map
 {
-	private length = 0;
+	private _length = 0;
 	first = null;
 	useThrow;
 
 	get count
 	{
-		return length;
+		return _length;
 	}
 
 	constructor(useThrow = true)
@@ -90,7 +90,7 @@ struct Map
 			else
 				prev.next = new MapEntry(key, val);
 
-			length++;
+			_length++;
 		}
 		else
 		{
@@ -120,7 +120,7 @@ struct Map
 			else
 				prev.next = entry.next;
 
-			length--;
+			_length--;
 			var val = entry.value;
 			delete entry;
 			return val;
@@ -169,7 +169,7 @@ struct Map
 	}
 	operator sizeof this
 	{
-		return this.length;
+		return this._length;
 	}
 	operator foreach in this
 	{
