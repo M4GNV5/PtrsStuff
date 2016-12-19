@@ -1,0 +1,59 @@
+struct StructArray
+{
+	private array;
+	private typ;
+	private keepMem;
+	private last = null;
+
+	constructor(_array, _typ, keepMemory = false)
+	{
+		if(typeof _array != type<native>)
+			throw "StructArray pointer argument must be of type native";
+
+		array = _array;
+		typ = _typ;
+		keepMem = keepMemory;
+	}
+
+	destructor()
+	{
+		if(!keepMem && last != null)
+			delete last;
+	}
+
+	operator this[index]
+	{
+		index = cast<int>index;
+		if(!keepMem && last != null)
+			delete last;
+
+		last = cast<typ>(array + index * sizeof typ);
+		return last;
+	}
+	operator &this[index]
+	{
+		return array + index * sizeof typ;
+	}
+
+	operator index in this
+	{
+		return index * sizeof typ in array;
+	}
+	operator sizeof this
+	{
+		return sizeof array / sizeof typ;
+	}
+
+	operator foreach in this
+	{
+		var len = sizeof this;
+		for(var i = 0; i < len; i++) scoped
+		{
+			var ptr = array + i * sizeof typ;
+			var entry = cast_stack<typ>ptr;
+
+			if(yield i, entry, ptr)
+				return;
+		}
+	}
+};
