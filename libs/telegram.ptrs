@@ -231,4 +231,31 @@ struct Telegram
 		json_destroy(res);
 		return id;
 	}
+
+	editMessage(chat, id, text, markup)
+	{
+		var req;
+		if(markup)
+		{
+			req = map_stack {
+				chat_id: chat,
+				message_id: id,
+				text: text,
+				reply_markup: markup
+			};
+		}
+		else
+		{
+			req = map_stack {
+				chat_id: chat,
+				message_id: id,
+				text: text
+			};
+		}
+
+		var res = makeRequest("editMessageText", req);
+		var id = res.result.message_id;
+		json_destroy(res);
+		return id;
+	}
 };
