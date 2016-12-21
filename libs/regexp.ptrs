@@ -1,87 +1,72 @@
-import malloc, strncpy, memcpy, regcomp, regexec, regerror, regfree;
+import memcpy;
+import pcre_compile, pcre_free, pcre_exec from "libpcre.so.3";
+
+const PCRE_ERROR_NOMATCH = -1;
 
 struct RegExp
 {
-	regex{64};
+	reg;
 
-	constructor(str, ignoreCase = false, multiLine = false)
+	constructor(pattern)
 	{
-		var flags = 1; //REG_EXTENDED
-		if(ignoreCase)
-			flags |= 2; //REG_ICASE
-		if(multiLine)
-			flags |= 4; //REG_NEWLINE
+		var err = NULL;
+		var errOffset = 0;
+		reg = pcre_compile!native(pattern, 0, &err, &errOffset, NULL);
 
-		var err = regcomp(this.regex, str, flags);
-		if(err != 0)
-		{
-			var buff{512};
-			regerror(err, this.regex, buff, 512);
-
-			throw buff;
-		}
+		if(!reg)
+			throw "PCRE: $err (index $errOffset)";
 	}
+
 	destructor()
 	{
-		regfree(this.regex);
+		pcre_free(reg);
 	}
 
-	operator val => this => any
+	test(str, offset = 0)
 	{
-		var str = cast<native>val;
-		if(this.test(str))
+		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, NULL, 0);
+
+		if(count < 0)
 		{
-			if(yield str)
-				return;
+			switch(count)
+			{
+				case PCRE_ERROR_NOMATCH:
+					return false;
+				default:
+					throw "PCRE error $count";
+			}
 		}
 		return true;
 	}
 
-	test(str)
+	match(str, offset = 0, maxMatches = 16)
 	{
-		return regexec(this.regex, str, 0, NULL, 0) == 0;
-	}
+		var matchOffsets{maxMatches * 8}; //TODO TypedArray
+		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, matchOffsets, maxMatches);
 
-	match(str, maxMatches = 16)
-	{
-		var matches{8 * maxMatches};
-		if(regexec(this.regex, str, maxMatches, matches, 0) != 0)
-			return null;
+		if(count < 0)
+		{
+			switch(count)
+			{
+				case PCRE_ERROR_NOMATCH:
+					return null;
+				default:
+					throw "PCRE error $count";
+			}
+		}
 
-		var starts[maxMatches];
-		var lengths[maxMatches];
-
-		var actualMatches = 1;
-		var totalLen = VARSIZE;
-		for(var i = 0; i < maxMatches; i++)
+		var matches = new array[count];
+		for(var i = 0; i < count; i++)
 		{
 			var start = 0;
-			memcpy(&start, matches + 8 * i, 8);
-			var end = start >> 32;
-			start &= 0xffffffff;
-			if(start < 0 || end < 0)
-				break;
+			memcpy(&start, matchOffsets + i * 8, 8); //TODO TypedArray
 
-			actualMatches++;
-			var len = end - start;
-			starts[i] = start;
-			lengths[i] = len;
-			totalLen += VARSIZE + len + 1;
+			var stop = start >> 32;
+			start &= 0xFFFFFFFF;
+
+			matches[i] = str[start .. stop];
 		}
 
-		var buff = malloc!native(totalLen)[0 .. totalLen];
-		var buffptr = (as<pointer>buff)[0 .. actualMatches];
-		buff += actualMatches * VARSIZE;
-
-		for(var i = 0; i < actualMatches - 1; i++)
-		{
-			buffptr[i] = buff;
-			strncpy(buff, str + starts[i], lengths[i]);
-			buff += lengths[i];
-			*buff++ = 0;
-		}
-		buffptr[actualMatches - 1] = NULL;
-
-		return buffptr;
+		return matches;
 	}
 };
