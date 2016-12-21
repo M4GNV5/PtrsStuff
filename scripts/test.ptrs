@@ -174,11 +174,11 @@ function testRegExp()
 		if(matches == null)
 			return printf("\tNo Match\n");
 
-		for(var i = 0; matches[i] != NULL; i++)
+		for(var i = 0; i < sizeof matches; i++)
 		{
-			printf("\tmatch %d: %s\n", i, matches[i]);
+			printf("\tmatch %d: %.*s\n", i, sizeof matches[i], matches[i]);
 		}
-		free(matches);
+		delete matches;
 	}
 	var reg = new RegExp("a?(b+)x{3}", true);
 	dumpMatches(reg, "abbxxx");
