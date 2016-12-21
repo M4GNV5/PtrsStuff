@@ -4,7 +4,7 @@ import List from "../libs/list.ptrs";
 import byChar, ByLine, BoundFilter from "../libs/algorithm.ptrs";
 import RegExp from "../libs/regexp.ptrs";
 import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
-import http_get from "../libs/http.ptrs";
+import HTTP from "../libs/curl.ptrs";
 import MutexWrap from "../libs/mutex.ptrs";
 import pthread_create, pthread_join, pthread_self from "libpthread.so.0";
 
@@ -189,10 +189,10 @@ function testRegExp()
 
 function testHttp()
 {
-	var resp = http_get("http://m4gnus.de/");
-	printf("Response Code: %d\nReponse Message: %s\n", resp.code, resp.message);
+	var resp = HTTP.GET("http://m4gnus.de/", _, true);
+	printf("Response Code: %d\n", resp.code);
 	dumpValue(resp.header);
-	printf("Content:\n%s\n", resp.content);
+	printf("Content:\n%s\n", resp.body);
 	delete resp;
 }
 

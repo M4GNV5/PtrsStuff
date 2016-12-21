@@ -1,9 +1,11 @@
 import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform, curl_easy_strerror,
-	curl_easy_cleanup, curl_slist_append, curl_slist_free_all from "libcurl.so";
+	curl_easy_getinfo, curl_easy_cleanup, curl_slist_append, curl_slist_free_all from "libcurl.so";
 import realloc, free, memcpy, strchr, strdup;
 import Map from "./map.ptrs";
 
 const CURL_GLOBAL_ALL = 3;
+const CURLINFO_RESPONSE_CODE = 2097154;
+
 const CURLOPT_URL = 10002;
 const CURLOPT_HTTPHEADER = 10023;
 const CURLOPT_WRITEFUNCTION = 20011;
@@ -49,23 +51,21 @@ function headerWriter(buff, size, count, data)
 
 struct HTTP
 {
+	code : long;
 	header = null;
 	body = NULL;
 	private bodyIndex = 0;
 
-	constructor(url, reqHeader, respHeader = false, postData)
+	constructor(url, reqHeader, postData)
 	{
 		var ctx = curl_easy_init();
 		curl_easy_setopt(ctx, CURLOPT_URL, url);
 		curl_easy_setopt(ctx, CURLOPT_WRITEFUNCTION, dataWriter);
 		curl_easy_setopt(ctx, CURLOPT_WRITEDATA, &this);
 
-		if(respHeader)
-		{
-			header = new Map();
-			curl_easy_setopt(ctx, CURLOPT_HEADERFUNCTION, headerWriter);
-			curl_easy_setopt(ctx, CURLOPT_HEADERDATA, &this);
-		}
+		header = new Map();
+		curl_easy_setopt(ctx, CURLOPT_HEADERFUNCTION, headerWriter);
+		curl_easy_setopt(ctx, CURLOPT_HEADERDATA, &this);
 
 		if(postData)
 		{
@@ -91,6 +91,8 @@ struct HTTP
 			var res = curl_easy_perform(ctx);
 			if(res != 0)
 				throw curl_easy_strerror!native(res);
+
+			curl_easy_getinfo(ctx, CURLINFO_RESPONSE_CODE, &this.code);
 		}
 		finally
 		{
@@ -103,13 +105,10 @@ struct HTTP
 	destructor()
 	{
 		free(body);
-		if(header)
-		{
-			foreach(key, val in header)
-				free(val);
 
-			delete header;
-		}
+		foreach(key, val in header)
+			free(val);
+		delete header;
 	}
 
 	addData(buff)
@@ -128,13 +127,13 @@ struct HTTP
 		body[bodyIndex] = 0;
 	}
 
-	static GET(url, reqHeader, respHeader = false)
+	static GET(url, reqHeader)
 	{
-		return new HTTP(url, reqHeader, respHeader);
+		return new HTTP(url, reqHeader);
 	}
 
-	static POST(url, data, reqHeader, respHeader = false)
+	static POST(url, data, reqHeader)
 	{
-		return new HTTP(url, reqHeader, respHeader, data);
+		return new HTTP(url, reqHeader, data);
 	}
 };
