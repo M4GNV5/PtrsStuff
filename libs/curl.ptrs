@@ -20,12 +20,30 @@ curl_global_init(CURL_GLOBAL_ALL);
 
 function dataWriter(buff, size, count, data)
 {
-	var len = size * count;
+	var buffLen = size * count;
 	data = *as<pointer>data;
-	buff = (as<native>buff)[0 .. len];
+	buff = (as<native>buff)[0 .. buffLen];
 
-	data.addData(buff);
-	return len;
+	with(data)
+	{
+		if(sizeof .body - .bodyIndex < sizeof buff - 1)
+		{
+			var len = sizeof .body;
+			if(len == 0)
+				len = 1024;
+
+			while(len < sizeof(.body) + sizeof(buff) - 1)
+				len *= 2;
+
+			.body = realloc!native(.body, len)[0 .. len];
+		}
+
+		memcpy(.body + .bodyIndex, buff, sizeof buff);
+		.bodyIndex += sizeof buff;
+		.body[.bodyIndex] = 0;
+	}
+
+	return buffLen;
 }
 
 function headerWriter(buff, size, count, data)
@@ -54,7 +72,7 @@ struct HTTP
 	code : long;
 	header = null;
 	body = NULL;
-	private bodyIndex = 0;
+	internal bodyIndex = 0;
 
 	constructor(url, reqHeader, postData)
 	{
@@ -109,22 +127,6 @@ struct HTTP
 		foreach(key, val in header)
 			free(val);
 		delete header;
-	}
-
-	addData(buff)
-	{
-		if(sizeof body - bodyIndex < sizeof buff - 1)
-		{
-			var len = 2 * sizeof body;
-			if(len == 0)
-				len = 1024;
-
-			body = realloc!native(body, len)[0 .. len];
-		}
-
-		memcpy(body + bodyIndex, buff, sizeof buff);
-		bodyIndex += sizeof buff;
-		body[bodyIndex] = 0;
 	}
 
 	static GET(url, reqHeader)
