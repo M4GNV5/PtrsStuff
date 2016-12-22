@@ -73,18 +73,20 @@ struct List
 }
 ```
 
-- `http.ptrs`
+- `curl.ptrs`:
 ```C
-struct HttpResponse
+struct HTTP
 {
-	code; //html status code (200, 404, etc.)
-	message; //html status message (OK, Not Found, etc.)
-	header; //Map with all received http header
-	content; //body string
-}
+	code; //http response code
+	header; //response header Map (from libs/map.ptrs)
+	body; //response body string
 
-//perform a http GET reqeust, returns a HttpResponse
-http_get(url, port = 80);
+	//shorthand functions for performing requests
+	//return a new 'HTTP' instance
+	//'reqHeader' is an optional foreach-able map of request headers
+	static GET(url, reqHeader);
+	static POST(url, data, reqHeader);
+};
 ```
 
 - `json.ptrs`:
