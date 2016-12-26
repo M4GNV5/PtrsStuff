@@ -19,17 +19,12 @@ struct Map
 {
 	private _length = 0;
 	first = null;
-	useThrow;
 
 	get count
 	{
 		return _length;
 	}
 
-	constructor(useThrow = true)
-	{
-		this.useThrow = useThrow;
-	}
 	destructor()
 	{
 		var curr = this.first;
@@ -41,7 +36,7 @@ struct Map
 		}
 	}
 
-	private getEntry(key, previous = null)
+	private getEntry(key, previous = null, doThrow = true)
 	{
 		key = cast<native>key;
 		var prev = null;
@@ -59,48 +54,12 @@ struct Map
 			curr = curr.next;
 		}
 
+		if(doThrow)
+			throw "Map has no key '$key'";
+
 		if(previous != null)
 			*previous = prev;
 		return null;
-	}
-
-	getValue(key, getPtr = false)
-	{
-		var entry = getEntry(key);
-
-		if(entry == null)
-		{
-			if(useThrow)
-				throw "Trying to get key '$key' which is not in this map";
-			return undefined;
-		}
-
-		return getPtr ? &entry.value : entry.value;
-	}
-
-	setValue(key, val)
-	{
-		var prev = null;
-		var entry = getEntry(key, &prev);
-
-		if(entry == null)
-		{
-			if(prev == null)
-				this.first = new MapEntry(key, val);
-			else
-				prev.next = new MapEntry(key, val);
-
-			_length++;
-		}
-		else
-		{
-			entry.value = val;
-		}
-	}
-
-	hasValue(key)
-	{
-		return !!getEntry(key);
 	}
 
 	remove(key)
@@ -109,8 +68,7 @@ struct Map
 		var entry = getEntry(key, &prev);
 		if(entry == null)
 		{
-			if(useThrow)
-				throw "Cannot remove non exisiting key '$key'";
+			throw "Cannot remove non exisiting key '$key'";
 			return undefined;
 		}
 		else
@@ -129,38 +87,51 @@ struct Map
 
 	operator this.key
 	{
-		return getValue(key);
+		return getEntry(key).value;
 	}
 	operator this[key]
 	{
-		return getValue(key);
+		return getEntry(key).value;
 	}
 
 	operator this.key = val
 	{
-		setValue(key, val);
+		this[key] = val;
 	}
 	operator this[key] = val
 	{
-		setValue(key, val);
+		var entry = getEntry(key, _, false);
+
+		if(entry)
+		{
+			entry.value = val;
+		}
+		else
+		{
+			var entry = new MapEntry(key, val);
+			entry.next = first;
+			first = entry;
+
+			_length++;
+		}
 	}
 
 	operator &this.key
 	{
-		return getValue(key, true);
+		return &(getEntry(key).value);
 	}
 	operator &this[key]
 	{
-		return getValue(key, true);
+		return &(getEntry(key).value);
 	}
 
 	operator this.key(args...)
 	{
-		return getValue(key)(...args);
+		return getEntry(key).value(...args);
 	}
 	operator this[key](args...)
 	{
-		return getValue(key)(...args);
+		return getEntry(key).value(...args);
 	}
 
 	operator key in this
@@ -169,7 +140,7 @@ struct Map
 	}
 	operator sizeof this
 	{
-		return this._length;
+		return _length;
 	}
 	operator foreach in this
 	{

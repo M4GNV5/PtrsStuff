@@ -14,26 +14,20 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 ```C
 struct Map
 {
-	//if useThrow is true getValue and remove will throw an exception if the key does not exist
-	constructor(useThrow = true);
-
 	get count; //getter returning the count of key/value pairs in the map
 
-	getValue(key, getPtr = false); //get (the pointer to) a value from the map
-	setValue(key, val); //set a value in the map (adding a new entry if it does not exist)
-	hasValue(key); //check if a key exists in the map
 	remove(key); //removes a key from the map
 
-	operator this.key; //same as getValue(key);
-	operator this[key]; //same as getValue(key);
-	operator this.key = val; //same as setValue(key, val);
-	operator this[key] = val; //same as setValue(key, val);
-	operator &this.key; //same as getValue(key, true);
-	operator this[key]; //same as getValue(key, true);
-	operator this.key(args...); //same as getValue(key)(...args);
-	operator this[key](args...); //same as getValue(key)(...args);
+	operator this.key; //get a value
+	operator this[key]; //get a value
+	operator this.key = val; //set a value
+	operator this[key] = val; //set a value
+	operator &this.key; //get the pointer of a value
+	operator &this[key]; //get the pointer of a value
+	operator this.key(args...); //call a value
+	operator this[key](args...); //call a value
 
-	operator key in this; //same as hasValue(key);
+	operator key in this; //check if a key exists
 	operator sizeof this; //same as 'get count'
 	operator foreach in this; //iterate over the map (yields key, value, &value)
 }
