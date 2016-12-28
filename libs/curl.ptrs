@@ -8,6 +8,7 @@ const CURLINFO_RESPONSE_CODE = 2097154;
 
 const CURLOPT_URL = 10002;
 const CURLOPT_HTTPHEADER = 10023;
+const CURLOPT_ERRORBUFFER = 10010;
 const CURLOPT_WRITEFUNCTION = 20011;
 const CURLOPT_WRITEDATA = 10001;
 const CURLOPT_HEADERFUNCTION = 20079;
@@ -76,8 +77,10 @@ struct HTTP
 
 	constructor(url, reqHeader, postData)
 	{
+		var errbuff{256};
 		var ctx = curl_easy_init();
 		curl_easy_setopt(ctx, CURLOPT_URL, url);
+		curl_easy_setopt(ctx, CURLOPT_ERRORBUFFER, errbuff);
 		curl_easy_setopt(ctx, CURLOPT_WRITEFUNCTION, dataWriter);
 		curl_easy_setopt(ctx, CURLOPT_WRITEDATA, &this);
 
@@ -108,7 +111,7 @@ struct HTTP
 		{
 			var res = curl_easy_perform(ctx);
 			if(res != 0)
-				throw curl_easy_strerror!native(res);
+				throw errbuff;
 
 			curl_easy_getinfo(ctx, CURLINFO_RESPONSE_CODE, &this.code);
 		}
