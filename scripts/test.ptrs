@@ -192,7 +192,7 @@ function testHttp()
 {
 	import HTTP from "../libs/curl.ptrs";
 
-	var resp = HTTP.GET("http://m4gnus.de/", _, true);
+	var resp = HTTP.GET("https://m4gnus.de/", _, true);
 	printf("Response Code: %d\n", resp.code);
 	dumpValue(resp.header);
 	printf("Content:\n%s\n", resp.body);
@@ -239,6 +239,17 @@ function testMutex()
 }
 
 var test = arguments[0] || "usage";
+
+if(strcmp(test, "all") == 0)
+{
+	testMap();
+	testList();
+	testAlgorithm();
+	testJson();
+	testRegExp();
+	testHttp();
+	testMutex();
+}
 
 if(strcmp(test, "mappy") == 0)
 	testMap();

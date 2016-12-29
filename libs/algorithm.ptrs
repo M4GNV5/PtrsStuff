@@ -25,13 +25,14 @@ struct BoundFilter
 
 		this.valPos = valPos;
 		argc = sizeof args;
+
+		for(var i = 0; i < argc; i++)
+			this.args[i] = args[i];
+
 		if(valPos == argc)
 			argc++;
 		if(argc > 16)
 			throw "Cannot bind more than 16 arguments to a function";
-
-		for(var i = 0; i < argc; i++)
-			this.args[i] = args[i];
 	}
 
 	operator this => any
