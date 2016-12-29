@@ -1,12 +1,7 @@
 import printf, puts, free, strcmp, fopen, fclose, fprintf, atoi, isdigit, isspace;
+
 import Map from "../libs/map.ptrs";
 import List from "../libs/list.ptrs";
-import byChar, ByLine, BoundFilter from "../libs/algorithm.ptrs";
-import RegExp from "../libs/regexp.ptrs";
-import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
-import HTTP from "../libs/curl.ptrs";
-import MutexWrap from "../libs/mutex.ptrs";
-import pthread_create, pthread_join, pthread_self from "libpthread.so.0";
 
 function dumpValue(mappy, indent = 0)
 {
@@ -112,6 +107,8 @@ function testList()
 
 function testAlgorithm()
 {
+	import byChar, ByLine, BoundFilter from "../libs/algorithm.ptrs";
+
 	function nonZero(val)
 	{
 		printf("val = %d\n", val);
@@ -134,6 +131,8 @@ function testAlgorithm()
 
 function testJson()
 {
+	import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
+
 	struct Test
 	{
 		foo = "ahoi";
@@ -166,6 +165,8 @@ function testJson()
 
 function testRegExp()
 {
+	import RegExp from "../libs/regexp.ptrs";
+
 	function dumpMatches(reg, str)
 	{
 		var matches = reg.match(str);
@@ -189,6 +190,8 @@ function testRegExp()
 
 function testHttp()
 {
+	import HTTP from "../libs/curl.ptrs";
+
 	var resp = HTTP.GET("http://m4gnus.de/", _, true);
 	printf("Response Code: %d\n", resp.code);
 	dumpValue(resp.header);
@@ -198,6 +201,7 @@ function testHttp()
 
 function doStuff(val)
 {
+	import pthread_self from "libpthread.so.0";
 	val = *as<pointer>val;
 	var self = pthread_self();
 
@@ -207,6 +211,9 @@ function doStuff(val)
 }
 function testMutex()
 {
+	import MutexWrap from "../libs/mutex.ptrs";
+	import pthread_create, pthread_join from "libpthread.so.0";
+
 	struct Test
 	{
 		loop(self)
