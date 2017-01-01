@@ -87,7 +87,7 @@ struct WebSocketServer
 		socket = libwebsock_init();
 
 		if(typeof port != type<native>)
-			port = cast<native>port;
+			port = cast<string>port;
 		libwebsock_bind(socket, host, port);
 	}
 	destructor()

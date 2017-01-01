@@ -178,7 +178,7 @@ struct List
 			curr = curr.next;
 		}
 
-		throw "Cannot remove '${cast<native>val}' from list: No such entry";
+		throw "Cannot remove '${cast<string>val}' from list: No such entry";
 	}
 
 	/*private _reverse(prev, next)

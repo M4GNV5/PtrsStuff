@@ -21,7 +21,7 @@ function json_encode(val)
 	}
 	else if(typeof val == type<int> || typeof val == type<float>)
 	{
-		return as<native>strdup(cast<native>val);
+		return as<native>strdup(cast<string>val);
 	}
 	else if(typeof val == type<native>)
 	{
@@ -124,7 +124,7 @@ function json_encode(val)
 	}
 	else
 	{
-		return json_encode(cast<native>val);
+		return json_encode(cast<string>val);
 	}
 }
 

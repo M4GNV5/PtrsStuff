@@ -133,7 +133,7 @@ struct Socket
 			return; //manual construction (e.g. via SocketServer)
 
 		if(typeof port == type<int>)
-			port = cast<native>port;
+			port = cast<string>port;
 
 		sockfd = createSocket(connect, host, port, socktype, family, 0);
 		if(sockfd == null)
@@ -285,7 +285,7 @@ struct SocketServer
 	constructor(port, backlog = 16, family = AF_UNSPEC, socktype = SOCK_STREAM)
 	{
 		if(typeof port == type<int>)
-			port = cast<native>port;
+			port = cast<string>port;
 
 		sockfd = createSocket(bind, NULL, port, socktype, family, AI_PASSIVE);
 		if(sockfd == null)

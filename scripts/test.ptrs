@@ -19,7 +19,7 @@ function dumpValue(mappy, indent = 0)
 			}
 			else
 			{
-				printf("%*s: %s\n", indent - 32, key, cast<native>val);
+				printf("%*s: %s\n", indent - 32, key, cast<string>val);
 			}
 		}
 	}
@@ -37,7 +37,7 @@ function dumpValue(mappy, indent = 0)
 			}
 			else
 			{
-				printf("%*d: %s\n", indent - 32, i, cast<native>val);
+				printf("%*d: %s\n", indent - 32, i, cast<string>val);
 			}
 		}
 	}
@@ -58,7 +58,7 @@ function testMap()
 	{
 		try
 		{
-			printf("mappy[%s] = %s\n", cast<native>key, cast<native>mappy[key]);
+			printf("mappy[%s] = %s\n", cast<string>key, cast<string>mappy[key]);
 		}
 		catch(err, trace)
 		{

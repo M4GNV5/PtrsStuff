@@ -1,6 +1,6 @@
 import curl_global_init, curl_easy_init, curl_easy_setopt, curl_easy_perform, curl_easy_strerror,
 	curl_easy_getinfo, curl_easy_cleanup, curl_slist_append, curl_slist_free_all from "libcurl.so";
-import realloc, free, memcpy, strchr, strdup;
+import realloc, free, memcpy, strchr, strdup, strlen;
 import Map from "./map.ptrs";
 
 const CURL_GLOBAL_ALL = 3;
@@ -62,7 +62,9 @@ function headerWriter(buff, size, count, data)
 		memcpy(name, buff, sizeof(name) - 2);
 		name[sizeof(name) - 2] = 0;
 
-		data.header[name] = strdup!native(value);
+		var str = strdup!native(value);
+		str = str[0 .. strlen(str) + 1];
+		data.header[name] = str;
 	}
 
 	return len;
@@ -90,7 +92,7 @@ struct HTTP
 
 		if(postData)
 		{
-			postData = cast<native>postData;
+			postData = cast<string>postData;
 			curl_easy_setopt(ctx, CURLOPT_POST, true);
 			curl_easy_setopt(ctx, CURLOPT_POSTFIELDS, postData);
 			//curl_easy_setopt(ctx, CURLOPT_POSTFIELDSIZE, sizeof postData);
