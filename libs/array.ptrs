@@ -7,12 +7,14 @@ struct StructArray
 	private keepMem;
 	private last = null;
 
-	constructor(_array, _typ, keepMemory = false)
+	constructor(mem, _typ, keepMemory = false)
 	{
-		if(typeof _array != type<native>)
-			throw "StructArray pointer argument must be of type native";
+		if(typeof mem == type<int>)
+			mem = new array{mem * sizeof _typ};
+		if(typeof mem != type<native>)
+			throw "StructArray first argument must be of type native or int";
 
-		array = _array;
+		array = mem;
 		typ = _typ;
 		keepMem = keepMemory;
 	}
@@ -77,12 +79,8 @@ struct TypedArray
 	private typ;
 	private array;
 
-	constructor(_array, typName)
+	constructor(mem, typName)
 	{
-		if(typeof _array != type<native>)
-			throw "StructArray pointer argument must be of type native";
-		array = _array;
-
 		if(!nativeTypes)
 			nativeTypes = new StructArray(ptrs_nativeTypes, ptrs_nativetype_info, true);
 
@@ -90,11 +88,20 @@ struct TypedArray
 		{
 			typ = nativeTypes[i];
 			if(strcmp(typ.name, typName) == 0)
-				return;
+				break;
+
 			delete typ;
+			typ = null;
 		}
 
-		throw "Unknown type name '$typName'";
+		if(!typ)
+			throw "Unknown type name '$typName'";
+
+		if(typeof mem == type<int>)
+			mem = new array{mem * typ.size};
+		if(typeof mem != type<native>)
+			throw "TypedArray first argument must be of type native or int";
+		array = mem;
 	}
 
 	operator this[index]
