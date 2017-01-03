@@ -28,6 +28,9 @@ struct StructArray
 	operator this[index]
 	{
 		index = cast<int>index;
+		if(index < 0 || index * sizeof typ > sizeof array)
+			throw "Index $index is out of bounds of StructArray of size ${sizeof this}";
+
 		if(!keepMem && last != null)
 			delete last;
 
@@ -36,6 +39,10 @@ struct StructArray
 	}
 	operator &this[index]
 	{
+		index = cast<int>index;
+		if(index < 0 || index * sizeof typ > sizeof array)
+			throw "Index $index is out of bounds of StructArray of size ${sizeof this}";
+
 		return array + index * sizeof typ;
 	}
 
@@ -72,6 +79,7 @@ struct ptrs_nativetype_info
 };
 memcpy(&ptrs_nativeTypeCount, ptrs_nativeTypeCount, sizeof int); //TODO this only works for LE
 ptrs_nativeTypeCount = as<int>ptrs_nativeTypeCount & 0xFFFFFFFF;
+ptrs_nativeTypes = ptrs_nativeTypes[0 .. ptrs_nativeTypeCount * sizeof ptrs_nativetype_info];
 
 struct TypedArray
 {
@@ -106,15 +114,27 @@ struct TypedArray
 
 	operator this[index]
 	{
+		index = cast<int>index;
+		if(index < 0 || index * typ.size > sizeof array)
+			throw "Index $index is out of bounds of TypedArray of size ${sizeof this}";
+
 		var val;
 		return *as<pointer>typ.getHandler(array + index * typ.size, typ.size, &val);
 	}
 	operator this[index] = val
 	{
+		index = cast<int>index;
+		if(index < 0 || index * typ.size > sizeof array)
+			throw "Index $index is out of bounds of TypedArray of size ${sizeof this}";
+
 		typ.setHandler(array + index * typ.size, typ.size, &val);
 	}
 	operator &this[index]
 	{
+		index = cast<int>index;
+		if(index < 0 || index * typ.size > sizeof array)
+			throw "Index $index is out of bounds of TypedArray of size ${sizeof this}";
+
 		return array + index * typ.size;
 	}
 
