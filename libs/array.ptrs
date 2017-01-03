@@ -1,3 +1,5 @@
+import ptrs_nativeTypes, ptrs_nativeTypeCount, strcmp, memcpy;
+
 struct StructArray
 {
 	private array;
@@ -53,6 +55,81 @@ struct StructArray
 			var entry = cast_stack<typ>ptr;
 
 			if(yield i, entry, ptr)
+				return;
+		}
+	}
+};
+
+struct ptrs_nativetype_info
+{
+	name : native; //const char *
+	size : size; //size_t
+	getHandler : native; //ptrs_var_t *(*)(void *, size_t, ptrs_var_t *)
+	setHandler : native; //ptrs_var_t *(*)(void *, size_t, ptrs_var_t *)
+	ffiType : native; //void *
+};
+memcpy(&ptrs_nativeTypeCount, ptrs_nativeTypeCount, sizeof int); //TODO this only works for LE
+ptrs_nativeTypeCount = as<int>ptrs_nativeTypeCount & 0xFFFFFFFF;
+
+struct TypedArray
+{
+	private static nativeTypes = null;
+	private typ;
+	private array;
+
+	constructor(_array, typName)
+	{
+		if(typeof _array != type<native>)
+			throw "StructArray pointer argument must be of type native";
+		array = _array;
+
+		if(!nativeTypes)
+			nativeTypes = new StructArray(ptrs_nativeTypes, ptrs_nativetype_info, true);
+
+		for(var i = 0; i < ptrs_nativeTypeCount; i++)
+		{
+			typ = nativeTypes[i];
+			if(strcmp(typ.name, typName) == 0)
+				return;
+			delete typ;
+		}
+
+		throw "Unknown type name '$typName'";
+	}
+
+	operator this[index]
+	{
+		var val;
+		return *as<pointer>typ.getHandler(array + index * typ.size, typ.size, &val);
+	}
+	operator this[index] = val
+	{
+		typ.setHandler(array + index * typ.size, typ.size, &val);
+	}
+	operator &this[index]
+	{
+		return array + index * typ.size;
+	}
+
+	operator index in this
+	{
+		return index * typ.size in array;
+	}
+	operator sizeof this
+	{
+		return sizeof array / typ.size;
+	}
+
+	operator foreach in this
+	{
+		var len = sizeof this;
+		for(var i = 0; i < len; i++) scoped
+		{
+			var ptr = array + i * typ.size;
+			var valv;
+			var val = *as<pointer>typ.getHandler(ptr, typ.size, &valv);
+
+			if(yield i, val, ptr)
 				return;
 		}
 	}
