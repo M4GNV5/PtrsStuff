@@ -13,6 +13,17 @@ var escapeSequences = map {
 	"\t": 't'
 };
 
+var unescapeSequences = map {
+	"\"": '"',
+	"\\": '\\',
+	"/": '/',
+	"b": '\b',
+	"f": '\f',
+	"n": '\n',
+	"r": '\r',
+	"t": '\t'
+};
+
 function json_encode(val)
 {
 	if(typeof val == type<undefined>)
@@ -143,23 +154,81 @@ function json_decode(str)
 		if(*str++ != '"')
 			throw "Invalid JSON, expected \" got $%c{*--str}";
 
-		var ptr = str;
-		while(*str != '"' && *str != 0)
-			str++;
+		if(typeof buff == type<undefined>)
+		{
+			var ptr = str;
+			while(*ptr != '"' && *ptr != 0)
+			{
+				if(*ptr == '\\')
+					ptr++;
+				ptr++;
+			}
+
+			var len = ptr - str + 1;
+			if(typeof max != type<undefined> && max < len)
+				throw "Cannot fit string of size $len into buffer of size $max";
+
+			max = len;
+			buff = new array{len};
+		}
+
+		if(typeof max == type<undefined>)
+			max = sizeof buff;
+
+		var curr = *str;
+		var i = 0;
+		for(; curr != '"' && curr != 0; i++)
+		{
+			if(i >= max)
+				throw "String too long for buffer of size $max";
+
+			if(curr == '\\')
+			{
+				curr = *++str;
+
+				if(curr == 'u')
+				{
+					var num{} = {str[1], str[2], str[3], str[4], 0};
+					str += 4;
+					var val = strtol(num, NULL, 16) & 0xFFFF;
+
+					if(val <= 0x7F)
+					{
+						buff[i] = val;
+					}
+					else if(val <= 0x7FF)
+					{
+						buff[i] = 0xC0 | ((val >> 6) & 0x3F);
+						buff[++i] = 0x80 | (val & 0x3F);
+					}
+					else
+					{
+						buff[i] = 0xE0 | ((val >> 12) & 0x0F);
+						buff[++i] = 0x80 | ((val >> 6) & 0x3F);
+						buff[++i] = 0x80 | ((val >> 6) & 0x3F);
+					}
+				}
+				else
+				{
+					var key{} = {curr, 0};
+					if(key in unescapeSequences)
+						buff[i] = unescapeSequences[key];
+					else
+						throw "Unknown escape sequence \\$%c{curr}";
+				}
+			}
+			else
+			{
+				buff[i] = curr;
+			}
+
+			curr = *++str;
+		}
 
 		if(*str == 0)
 			throw "Invalid JSON, expected \" got EOF";
 
-		var len = str - ptr;
-		max = max || len;
-
-		if(typeof buff == type<undefined>)
-			buff = new array{len + 1};
-		if(max < len)
-			len = max - 1;
-
-		strncpy(buff, ptr, len);
-		buff[len] = 0;
+		buff[i] = 0;
 
 		str++;
 		return buff;
