@@ -45,9 +45,26 @@ function json_encode(val)
 		{
 			key[0] = val[i];
 			if(key in escapeSequences)
+			{
 				escapeLen += 2;
-			if(val[i] < ' ' || val[i] > '~')
+			}
+			else if(val[i] & 0x80)
+			{
+				if(val[i] & 0x20)
+				{
+					i += 2;
+					escapeLen += 4;
+				}
+				else
+				{
+					i++;
+					escapeLen += 5;
+				}
+			}
+			else if(val[i] < ' ' || val[i] > '~')
+			{
 				escapeLen += 6;
+			}
 		}
 
 		var buff = new array{3 + len + escapeLen};
@@ -58,11 +75,27 @@ function json_encode(val)
 		{
 			key[0] = val[i];
 			if(key in escapeSequences)
+			{
 				buffptr += sprintf(buffptr, "\\%c", escapeSequences[key]);
+			}
+			else if(val[i] & 0x80)
+			{
+				var utfVal;
+				if(val[i] & 0x20)
+					utfVal = ((val[i] & 0x0F) << 12) | ((val[++i] & 0x3F) << 6) | (val[++i] & 0x3F);
+				else
+					utfVal = ((val[i] & 0x1F) << 6) | (val[++i] & 0x3f);
+
+				buffptr += sprintf(buffptr, "\\u%02hhx%02hhx", (utfVal >> 8) & 0xFF, utfVal & 0xFF);
+			}
 			else if(val[i] < ' ' || val[i] > '~')
-				buffptr += sprintf(buffptr, "\\u00%02hhX", val[i]);
+			{
+				buffptr += sprintf(buffptr, "\\u00%02hhx", val[i]);
+			}
 			else
+			{
 				*buffptr++ = val[i];
+			}
 		}
 
 		*buffptr++ = '"';
