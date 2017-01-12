@@ -115,6 +115,7 @@ struct HTTP
 				throw errbuff;
 
 			curl_easy_getinfo(ctx, CURLINFO_RESPONSE_CODE, &this.code);
+			body = body[0 .. bodyIndex];
 		}
 		finally
 		{
