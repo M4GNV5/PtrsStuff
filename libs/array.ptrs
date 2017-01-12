@@ -7,6 +7,11 @@ struct StructArray
 	private keepMem;
 	private last = null;
 
+	get memory
+	{
+		return array;
+	}
+
 	constructor(mem, _typ, keepMemory = false)
 	{
 		if(typeof mem == type<int>)
@@ -86,6 +91,12 @@ struct TypedArray
 	private static nativeTypes = null;
 	private typ;
 	private array;
+
+	get memory
+	{
+		return array;
+	}
+
 
 	constructor(mem, typName)
 	{
