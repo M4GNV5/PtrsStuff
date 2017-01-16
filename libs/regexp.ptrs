@@ -1,5 +1,6 @@
 import memcpy;
-import pcre_compile, pcre_free, pcre_exec from "libpcre.so.3";
+import pcre_* from "libpcre.so.3";
+import TypedArray from "./array.ptrs";
 
 const PCRE_ERROR_NOMATCH = -1;
 
@@ -41,8 +42,8 @@ struct RegExp
 
 	match(str, offset = 0, maxMatches = 16)
 	{
-		var matchOffsets{maxMatches * 8}; //TODO TypedArray
-		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, matchOffsets, maxMatches);
+		var offsets : TypedArray(new_stack array{maxMatches * sizeof int * 2}, "int");
+		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, offsets.memory, sizeof offsets);
 
 		if(count < 0)
 		{
@@ -58,13 +59,7 @@ struct RegExp
 		var matches = new array[count];
 		for(var i = 0; i < count; i++)
 		{
-			var start = 0;
-			memcpy(&start, matchOffsets + i * 8, 8); //TODO TypedArray
-
-			var stop = start >> 32;
-			start &= 0xFFFFFFFF;
-
-			matches[i] = str[start .. stop];
+			matches[i] = str[offsets[i * 2] .. offsets[i * 2 + 1]];
 		}
 
 		return matches;

@@ -181,7 +181,11 @@ function testRegExp()
 		}
 		delete matches;
 	}
-	var reg = new RegExp("a?(b+)x{3}", true);
+
+	var regStr = "a?(b+)x{3}";
+	printf("regex = %s\n", regStr);
+
+	var reg = new RegExp(regStr);
 	dumpMatches(reg, "abbxxx");
 	dumpMatches(reg, "aaaaaabbbbbxx");
 	dumpMatches(reg, "bbaabbbbbxxx");
