@@ -202,7 +202,9 @@ struct SocketSet
 //type passed to callbacks of a WebSocketServer, do not construct this yourself
 struct libwebsock_client
 {
-	get server; //retrieve the server object a client is connected to
+	userdata : pointer; //can be used to store a pointer to your own data
+
+	get server; //retrieve the WebSocketServer a client is connected to
 
 	send(text); //send text to the client
 	sendBinary(buff, len); //send binary data to the client
@@ -219,7 +221,7 @@ struct WebSocketServer
 	onclose; //arguments: (client)
 	onmessage; //arguments: (client, message, len)
 
-	userdata = undefined;
+	userdata = undefined; //can be used to store a pointer to your own data
 
 	broadcast(msg); //broadcasts msg to all connected clients
 	listen(); //starts listening, looping infinitly

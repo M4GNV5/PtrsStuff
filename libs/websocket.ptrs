@@ -1,14 +1,6 @@
 //obtain source from https://github.com/payden/libwebsock
 //TODO add this as a submodule?
-import libwebsock_init, libwebsock_bind, libwebsock_wait, libwebsock_close_with_reason,
-	libwebsock_send_binary, libwebsock_send_text, libwebsock_send_all_text from "../bin/libwebsock.so.1.0.7";
-
-asm bundleFunction
-{
-	bundleFunction:
-		mov %rdi, %rax
-		ret
-};
+import libwebsock_* from "../bin/libwebsock.so.1.0.7";
 
 struct libwebsock_context
 {
@@ -29,7 +21,7 @@ struct libwebsock_client
 {
 	sockfd : int;
 	flags : int;
-	data : pointer;
+	userdata : pointer;
 	current_frame : pointer;
 	sa : pointer;
 	bev : pointer;
@@ -84,7 +76,7 @@ struct WebSocketServer
 
 	constructor(port = "6060", host = "0.0.0.0")
 	{
-		socket = libwebsock_init();
+		socket = libwebsock_init!pointer();
 
 		if(typeof port != type<native>)
 			port = cast<string>port;
@@ -131,9 +123,9 @@ struct WebSocketServer
 	listen()
 	{
 		var sock = cast_stack<libwebsock_context>socket;
-		sock.onopen = bundleFunction(_onopen);
-		sock.onclose = bundleFunction(_onclose);
-		sock.onmessage = bundleFunction(_onmessage);
+		sock.onopen = cast<native>_onopen;
+		sock.onclose = cast<native>_onclose;
+		sock.onmessage = cast<native>_onmessage;
 		sock.userdata = this;
 
 		libwebsock_wait(socket);
