@@ -123,6 +123,11 @@ struct TypedArray
 		array = mem;
 	}
 
+	destructor()
+	{
+		delete typ;
+	}
+
 	operator this[index]
 	{
 		index = cast<int>index;
