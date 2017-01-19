@@ -1,4 +1,4 @@
-import malloc, free;
+import qsort;
 
 struct ListEntry
 {
@@ -264,6 +264,15 @@ struct List
 		return last;
 	}
 
+	sort(buff, max, compare = (a, b) -> a - b)
+	{
+		var proxyCompare = (a, b) -> compare(*as<pointer>a, *as<pointer>b);
+		buff = this.toArray(buff, max);
+
+		qsort(buff, sizeof buff, VARSIZE, proxyCompare);
+		return buff;
+	}
+
 	static fromArray(buff, len = sizeof(buff))
 	{
 		var list = new List();
@@ -277,10 +286,7 @@ struct List
 		if(typeof max == type<undefined>)
 			max = buff ? sizeof buff : _length;
 		if(typeof buff == type<undefined>)
-		{
-			max = _length;
-			buff = as<pointer>malloc(_length * VARSIZE);
-		}
+			buff = new array[max];
 
 		var curr = this.first;
 		for(var i = 0; curr != null && i < max; i++)

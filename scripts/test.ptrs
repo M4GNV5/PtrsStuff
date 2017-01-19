@@ -98,6 +98,12 @@ function testList()
 	dumpValue(list);
 	printf("\n");
 
+	var sorted = list.sort(_, _, (a, b) -> cast<int>a - cast<int>b);
+	foreach(i, val in sorted)
+		puts("sorted[$i] = $val");
+	puts("");
+	delete sorted;
+
 	list.remove(13);
 	list.removeAt(3);
 
