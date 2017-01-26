@@ -1,0 +1,137 @@
+import signal, getitimer, setitimer;
+import List from "./list.ptrs";
+
+const SIGALRM = 14;
+const ITIMER_REAL = 0;
+
+struct itimerval
+{
+	intervalSec : u64;
+	intervalUSec : u64;
+	timeoutSec : u64;
+	timeoutUSec : u64;
+
+	get interval
+	{
+		return intervalSec * 1000 + cast<float>intervalUSec / 1000;
+	}
+	set interval
+	{
+		intervalSec = value / 1000;
+		intervalUSec = cast<int>(value * 1000) % 1000000;
+	}
+
+	get timeout
+	{
+		return timeoutSec * 1000 + cast<float>timeoutUSec / 1000;
+	}
+	set timeout
+	{
+		timeoutSec = value / 1000;
+		timeoutUSec = cast<int>(value * 1000) % 1000000;
+	}
+};
+
+struct ScheduledJob
+{
+	func;
+	arg;
+	timeout;
+};
+var queue = new List();
+var timerval : itimerval();
+
+signal(SIGALRM, function()
+{
+	var job = queue.removeAt(0);
+	job.func(job.arg, job);
+	delete job;
+
+	if(queue.length > 0)
+	{
+		timerval.interval = 0;
+		timerval.timeout = queue[0].timeout;
+		setitimer(ITIMER_REAL, timerval, NULL);
+	}
+});
+
+function setTimeout(func, timeout, arg)
+{
+	var job = new ScheduledJob();
+	job.func = func;
+	job.arg = arg;
+
+	getitimer(ITIMER_REAL, timerval);
+	if(timeout < timerval.timeout)
+	{
+		job.timeout = timeout;
+		queue[0].timeout = timerval.timeout - timeout;
+		queue.splice(0, 0, job);
+
+		timerval.interval = 0;
+		timerval.timeout = timeout;
+		setitimer(ITIMER_REAL, timerval, NULL);
+	}
+	else
+	{
+		foreach(i, curr in queue)
+		{
+			if(timeout > curr.timeout)
+			{
+				timeout -= curr.timeout;
+			}
+			else
+			{
+				job.timeout = timeout;
+				queue.splice(i, 0, job);
+
+				timeout = -1;
+				break;
+			}
+		}
+
+		if(timeout != -1)
+		{
+			if(queue.length == 0)
+			{
+				timerval.interval = 0;
+				timerval.timeout = timeout;
+
+				setitimer(ITIMER_REAL, timerval, NULL);
+			}
+
+			job.timeout = timeout;
+			queue.add(job);
+		}
+	}
+
+	return job;
+}
+
+function clearTimeout(job)
+{
+	var index = queue.indexOf(job);
+	if(index == 0)
+	{
+		queue.removeAt(0);
+
+		if(queue.length > 0)
+		{
+			getitimer(ITIMER_REAL, timerval);
+			queue[0].timeout += timerval.timeout;
+
+			timerval.timeout = queue[0].timeout;
+		}
+		else
+		{
+			timerval.timeout = 0;
+		}
+
+		timerval.interval = 0;
+		setitimer(ITIMER_REAL, timerval, NULL);
+	}
+	else
+	{
+		queue.removeAt(index);
+	}
+}

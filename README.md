@@ -115,6 +115,16 @@ struct RegExp
 }
 ```
 
+- `timeout.ptrs`:
+```js
+//executes 'func(arg)' after 'timeout' milliseconds
+//returns a 'job' that can be used with 'clearTimeout'
+function setTimeout(func, timeout, arg) { ... }
+
+//deletes the timeout 'job' (a value returned by 'setTimeout')
+function clearTimeout(job) { ... }
+```
+
 - `socket.ptrs`: `socket.ptrs` is the replacement of `network.ptrs`
 using the posix networking api directly instead of sdl_net
 ```C
