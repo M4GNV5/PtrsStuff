@@ -42,7 +42,7 @@ struct RegExp
 
 	match(str, offset = 0, maxMatches = 16)
 	{
-		var offsets : TypedArray(new_stack array{maxMatches * sizeof int * 2}, "int");
+		var offsets = new TypedArray(new_stack array{maxMatches * sizeof int * 2}, "int");
 		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, offsets.memory, sizeof offsets);
 
 		if(count < 0)
@@ -62,6 +62,7 @@ struct RegExp
 			matches[i] = str[offsets[i * 2] .. offsets[i * 2 + 1]];
 		}
 
+		delete offsets;
 		return matches;
 	}
 };

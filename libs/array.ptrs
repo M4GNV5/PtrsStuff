@@ -97,7 +97,6 @@ struct TypedArray
 		return array;
 	}
 
-
 	constructor(mem, typName)
 	{
 		if(!nativeTypes)
