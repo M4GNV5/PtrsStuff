@@ -60,6 +60,10 @@ struct List
 	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
 	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
 
+	find(check = (val, data) -> true, data = null) //call check on every value, returning the first one it returns true on
+	filter(check = (val, data) -> true, data = null) //call check on every value, only keeping values it returns true
+	each(modify = (val, data) -> val, data = null) //overwrite all values with modify(value)
+
 	//create a new List from an array
 	static fromArray(buff, length = sizeof buff);
 	//write the entries of a list to the array. If 'buff' is NULL or undefined it returns a malloc'ed array
