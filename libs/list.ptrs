@@ -101,17 +101,17 @@ struct List
 
 	getEntry(index, previous = null)
 	{
+		if(index < 0 || index >= _length)
+			throw "Index $index is not in list of length $_length";
+
 		var prev = null;
 		var curr = this.first;
 		var _index = index;
-		while(curr != null && _index-- > 0)
+		while(_index-- > 0)
 		{
 			prev = curr;
 			curr = curr.next;
 		}
-
-		if(curr == null)
-			throw "Index $index is not in list of length $_length";
 
 		if(previous != null)
 			*previous = prev;
