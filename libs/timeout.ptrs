@@ -82,6 +82,7 @@ function setTimeout(func, timeout, arg)
 			}
 			else
 			{
+				curr.timeout -= timeout;
 				job.timeout = timeout;
 				queue.splice(i, 0, job);
 
