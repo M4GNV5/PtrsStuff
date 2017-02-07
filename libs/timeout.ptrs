@@ -37,15 +37,25 @@ struct ScheduledJob
 	func;
 	arg;
 	timeout;
+	interval;
 };
+
+var addJob;
 var queue = new List();
 var timerval : itimerval();
 
 signal(SIGALRM, function()
 {
-	var job = queue.removeAt(0);
-	job.func(job.arg, job);
-	delete job;
+	do
+	{
+		var job = queue.removeAt(0);
+		job.func(job.arg, job);
+
+		if(job.interval > 0)
+		addJob(job, job.interval);
+		else
+		delete job;
+	} while(queue[0].timeout == 0);
 
 	if(queue.length > 0)
 	{
@@ -55,12 +65,8 @@ signal(SIGALRM, function()
 	}
 });
 
-function setTimeout(func, timeout, arg)
+function addJob(job, timeout)
 {
-	var job = new ScheduledJob();
-	job.func = func;
-	job.arg = arg;
-
 	getitimer(ITIMER_REAL, timerval);
 	if(timeout < timerval.timeout)
 	{
@@ -105,7 +111,27 @@ function setTimeout(func, timeout, arg)
 			queue.add(job);
 		}
 	}
+}
 
+function setTimeout(func, timeout, arg)
+{
+	var job = new ScheduledJob();
+	job.func = func;
+	job.arg = arg;
+	job.interval = 0;
+
+	addJob(job, timeout);
+	return job;
+}
+
+function setInterval(func, interval, arg)
+{
+	var job = new ScheduledJob();
+	job.func = func;
+	job.arg = arg;
+	job.interval = interval;
+
+	addJob(job, interval);
 	return job;
 }
 
@@ -136,3 +162,5 @@ function clearTimeout(job)
 		queue.removeAt(index);
 	}
 }
+
+var clearInterval = clearTimeout;
