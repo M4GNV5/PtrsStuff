@@ -1,4 +1,4 @@
-import memcpy;
+import memcpy, free;
 import pcre_* from "libpcre.so.3";
 import TypedArray from "./array.ptrs";
 
@@ -20,7 +20,7 @@ struct RegExp
 
 	destructor()
 	{
-		pcre_free(reg);
+		free(reg);
 	}
 
 	test(str, offset = 0)
