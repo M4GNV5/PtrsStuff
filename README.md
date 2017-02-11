@@ -68,6 +68,41 @@ struct List
 }
 ```
 
+- `array.ptrs` provides two array classes for C interop
+```C
+struct StructArray
+{
+	get memory; //returns the start pointer of the array
+
+	//create a new array of type `typ[]`. `mem` can either be a pointer to memory
+	//or an integer. If its an integer a new array `typ[mem]` is created.
+	constructor(mem, typ);
+
+	operator this[index]; //get the struct at `index`
+	operator &this[index]; //get the address to the struct at `index`
+	operator index in this; //boundary check
+	operator sizeof this; //get the size of the array
+	operator foreach in this; //iterate over all structs in the array
+};
+
+struct TypedArray
+{
+	get memory; //returns the start pointer of the array
+
+	//create a new array of type `typ[]`. Typ should be the name of the native type
+	//e.g. "long", "single" or "native". `mem` can either be a pointer to memory
+	//or an integer. If its an integer a new array `typ[mem]` is created.
+	constructor(mem, typ);
+
+	operator this[index]; //get the value at `index`
+	operator this[index] = val; //set the value at `index` to `val`
+	operator &this[index]; //get the address to the value at `index`
+	operator index in this; //boundary check
+	operator sizeof this; //get the size of the array
+	operator foreach in this; //iterate over all values in the array
+};
+```
+
 - `curl.ptrs`:
 ```C
 struct HTTP
