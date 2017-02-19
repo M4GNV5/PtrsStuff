@@ -111,30 +111,6 @@ function testList()
 	delete list;
 }
 
-function testAlgorithm()
-{
-	import byChar, ByLine, BoundFilter from "../libs/algorithm.ptrs";
-
-	function nonZero(val)
-	{
-		printf("val = %d\n", val);
-		return val == 0 ? false : true;
-	}
-
-	var fd = fopen("nums.txt", "w+");
-
-	var list = new List();
-	list.add("kek", "3\n14", "666\nlol\n42\n", "0", " \n  ", "3deep\n5me", "42\n");
-
-	scoped list
-		=> byChar
-		=> isdigit || isspace
-		=> new_stack ByLine()
-		=> ? atoi
-		=> nonZero
-		=> new_stack BoundFilter(fprintf, _, 2, fd, "%d\n");
-}
-
 function testJson()
 {
 	import json_encode, json_decode, json_destroy from "../libs/json.ptrs";
@@ -254,19 +230,17 @@ if(strcmp(test, "all") == 0)
 {
 	testMap();
 	testList();
-	testAlgorithm();
 	testJson();
 	testRegExp();
 	testHttp();
 	testMutex();
+	return;
 }
 
 if(strcmp(test, "mappy") == 0)
 	testMap();
 else if(strcmp(test, "list") == 0)
 	testList();
-else if(strcmp(test, "algorithm") == 0)
-	testAlgorithm();
 else if(strcmp(test, "json") == 0)
 	testJson();
 else if(strcmp(test, "regexp") == 0)

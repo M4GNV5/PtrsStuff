@@ -78,22 +78,6 @@ struct List
 		}
 	}
 
-	operator this => any
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(yield curr.value)
-				return;
-			curr = curr.next;
-		}
-		return undefined;
-	}
-	operator val => this
-	{
-		this.add(val);
-	}
-
 	get length
 	{
 		return _length;

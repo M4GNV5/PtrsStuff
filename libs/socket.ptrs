@@ -251,30 +251,6 @@ struct Socket
 
 		return i;
 	}
-
-	operator this => any
-	{
-		while(true)
-		{
-			var val = readc();
-			if(_closed)
-				return;
-
-			if(yield val)
-				return;
-		}
-	}
-
-	operator val => this
-	{
-		var typ = typeof val;
-		if(typ == type<int> || typ == type<float>)
-			sendc(val);
-		else if(typ == type<native>)
-			sends(val);
-		else
-			throw "Cannot pipe a variable of type $typ to a socket in an algorithm";
-	}
 };
 
 struct SocketServer

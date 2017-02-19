@@ -21,7 +21,7 @@ struct Client
 
 function broadcast(nick, splitter, buff)
 {
-	var msg = "%-10.10s %c %s\n" % nick, splitter, buff;
+	var msg = "$%-10.10s{nick} $%c{splitter} $buff\n";
 	printf("%s", msg);
 
 	foreach(sock in sockset)
@@ -71,21 +71,8 @@ while(true)
 			var buff{256};
 			var splitter = ':';
 
-			var len = 0;
-			var spaceOnly = true;
-			function filter(c)
-			{
-				if(!isspace(c))
-					spaceOnly = false;
-				if(c == '\n')
-					return undefined;
-
-				len++;
-				return true;
-			}
-
-			sock => filter => isprint => buff;
-			buff[len] = 0;
+			var len = sock.read(buff, 255, '\n');
+			buff[len - 1] = 0;
 
 			if(sock.closed)
 			{
@@ -94,6 +81,18 @@ while(true)
 				delete sock;
 				continue;
 			}
+
+			var spaceOnly = true;
+			for(var i = 0; i < len; i++)
+			{
+				if(!isspace(buff[i]))
+				{
+					spaceOnly = false;
+					break;
+				}
+			}
+			if(spaceOnly)
+				continue;
 
 			//client.antiSpam += 10;
 			//if(spaceOnly || client.antiSpam > 19)
