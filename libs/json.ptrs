@@ -24,18 +24,24 @@ var unescapeSequences = map {
 	"t": '\t'
 };
 
-function json_encode(val)
+function json_encode(val, cb)
 {
+	if(cb)
+		val = cb(val);
+
 	if(typeof val == type<undefined>)
 	{
-		return as<native>strdup("null");
+		return strdup!native("null");
 	}
 	else if(typeof val == type<int> || typeof val == type<float>)
 	{
-		return as<native>strdup(cast<string>val);
+		return strdup!native(cast<string>val);
 	}
 	else if(typeof val == type<native>)
 	{
+		if(val == NULL)
+			return strdup!native("null");
+
 		var len = strlen(val);
 		val = val[0 .. len];
 
@@ -106,15 +112,18 @@ function json_encode(val)
 	{
 		var array[val.length];
 		val.toArray(array);
-		return json_encode(array);
+		return json_encode(array, cb);
 	}
 	else if(typeof val == type<pointer> && sizeof val > 0)
 	{
+		if(val == null)
+			return strdup!native("null");
+
 		var len = 2;
 		var strings[sizeof val];
 		for(var i = 0; i < sizeof val; i++)
 		{
-			strings[i] = json_encode(val[i]);
+			strings[i] = json_encode(val[i], cb);
 			len += strlen(strings[i]) + 1;
 		}
 
@@ -145,8 +154,14 @@ function json_encode(val)
 
 		foreach(key, value in val)
 		{
-			keyStrings[i] = json_encode(key);
-			valueStrings[i] = json_encode(value);
+			if(typeof value == type<undefined>)
+			{
+				keyStrings[i++] = NULL;
+				continue;
+			}
+
+			keyStrings[i] = json_encode(key, cb);
+			valueStrings[i] = json_encode(value, cb);
 			len += strlen(keyStrings[i]) + strlen(valueStrings[i]) + 2;
 			i++;
 		}
@@ -157,6 +172,9 @@ function json_encode(val)
 
 		for(var i = 0; i < count; i++)
 		{
+			if(keyStrings[i] == NULL)
+				continue;
+
 			buffptr += sprintf(buffptr, "%s:%s,", keyStrings[i], valueStrings[i]);
 			free(keyStrings[i]);
 			free(valueStrings[i]);
@@ -168,7 +186,7 @@ function json_encode(val)
 	}
 	else
 	{
-		return json_encode(cast<string>val);
+		return json_encode(cast<string>val, cb);
 	}
 }
 
