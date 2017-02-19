@@ -149,7 +149,8 @@ struct RegExp
 }
 ```
 
-- `timeout.ptrs`:
+- `timeout.ptrs`: Note, this library does not create another thread, instead it
+interrupts the current thread and resumes to it when `func` returns.
 ```js
 //executes 'func(arg)' after 'timeout' milliseconds
 //returns a 'job' that can be used with 'clearTimeout'
@@ -157,6 +158,13 @@ function setTimeout(func, timeout, arg) { ... }
 
 //deletes the timeout 'job' (a value returned by 'setTimeout')
 function clearTimeout(job) { ... }
+
+//executes 'func(arg)' every 'intercal' milliseconds
+//returns a 'job' that can be used with clearInterval
+function setInterval(func, interval, arg) { ... }
+
+//deletes the interval 'job' (a value returned by 'setInterval')
+function clearInterval(job) { ... }
 ```
 
 - `socket.ptrs`: `socket.ptrs` is the replacement of `network.ptrs`
