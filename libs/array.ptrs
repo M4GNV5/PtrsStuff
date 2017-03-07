@@ -3,16 +3,16 @@ import ptrs_nativeTypes, ptrs_nativeTypeCount, strcmp, memcpy;
 struct StructArray
 {
 	private array;
+	private deleteMem;
 	private typ;
-	private keepMem;
-	private last = null;
+	private useHeap;
 
 	get memory
 	{
 		return array;
 	}
 
-	constructor(mem, _typ, keepMemory = false)
+	constructor(mem, _typ, _useHeap = false, freeOnDelete = typeof mem == type<int>)
 	{
 		if(typeof mem == type<int>)
 			mem = new array{mem * sizeof _typ};
@@ -20,14 +20,15 @@ struct StructArray
 			throw "StructArray first argument must be of type native or int";
 
 		array = mem;
+		deleteMem = freeOnDelete;
 		typ = _typ;
-		keepMem = keepMemory;
+		useHeap = _useHeap;
 	}
 
 	destructor()
 	{
-		if(!keepMem && last != null)
-			delete last;
+		if(deleteMem)
+			delete array;
 	}
 
 	operator this[index]
@@ -36,11 +37,10 @@ struct StructArray
 		if(index < 0 || index * sizeof typ > sizeof array)
 			throw "Index $index is out of bounds of StructArray of size ${sizeof this}";
 
-		if(!keepMem && last != null)
-			delete last;
-
-		last = cast<typ>(array + index * sizeof typ);
-		return last;
+		if(useHeap)
+			return cast<typ>(array + index * sizeof typ);
+		else
+			return cast_stack<typ>(array + index * sizeof typ);
 	}
 	operator &this[index]
 	{
@@ -89,7 +89,7 @@ ptrs_nativeTypes = ptrs_nativeTypes[0 .. ptrs_nativeTypeCount * sizeof ptrs_nati
 struct TypedArray
 {
 	private static nativeTypes = null;
-	private typ;
+	private typ = null;
 	private array;
 
 	get memory
@@ -102,14 +102,13 @@ struct TypedArray
 		if(!nativeTypes)
 			nativeTypes = new StructArray(ptrs_nativeTypes, ptrs_nativetype_info, true);
 
-		for(var i = 0; i < ptrs_nativeTypeCount; i++)
+		foreach(i, t in nativeTypes)
 		{
-			typ = nativeTypes[i];
-			if(strcmp(typ.name, typName) == 0)
+			if(strcmp(t.name, typName) == 0)
+			{
+				typ = nativeTypes[i];
 				break;
-
-			delete typ;
-			typ = null;
+			}
 		}
 
 		if(!typ)

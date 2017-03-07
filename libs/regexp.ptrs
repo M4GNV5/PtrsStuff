@@ -42,7 +42,7 @@ struct RegExp
 
 	match(str, offset = 0, maxMatches = 16)
 	{
-		var offsets = new TypedArray(new_stack array{maxMatches * sizeof int * 2}, "int");
+		var offsets = new_stack TypedArray(new_stack array{maxMatches * sizeof int * 2}, "int");
 		var count = pcre_exec!int(reg, NULL, str, sizeof str, offset, 0, offsets.memory, sizeof offsets);
 
 		if(count < 0)
@@ -50,8 +50,10 @@ struct RegExp
 			switch(count)
 			{
 				case PCRE_ERROR_NOMATCH:
+					delete offsets;
 					return null;
 				default:
+					delete offsets;
 					throw "PCRE error $count";
 			}
 		}

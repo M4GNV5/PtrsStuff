@@ -76,7 +76,10 @@ struct StructArray
 
 	//create a new array of type `typ[]`. `mem` can either be a pointer to memory
 	//or an integer. If its an integer a new array `typ[mem]` is created.
-	constructor(mem, typ);
+	//if `useHeap` is true structs returned by `operator this[index]` are created
+	//on the heap using `cast<typ>` otherwise on the stack using `cast_stack<typ>`
+	//if deleteMem is true, `mem` will be deleted in the constructor
+	constructor(mem, typ, useHeap = false, deleteMem = typeof mem == type<int>);
 
 	operator this[index]; //get the struct at `index`
 	operator &this[index]; //get the address to the struct at `index`
