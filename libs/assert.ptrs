@@ -1,0 +1,26 @@
+import memcpy, ptrs_error;
+
+struct ptrs_scope
+{
+	outer : native; //struct ptrs_scope *
+	stackstart : native; //void *
+	sp : native; //void *
+	bp : native; //void *
+	callAst : native; //struct ptrs_ast *
+	callScope : native; //struct ptrs_scope *
+	calleeName : native; //const char *
+	error : native; //struct ptrs_error *
+	exit : u8; //2 bit bitfield: 00 = nothing   01 = continue   10 = break   11 = return
+};
+
+function assert(val = true, lazy msg = "Assertion failed")
+{
+	if(!val)
+	{
+		import ptrs_lastscope as scope;
+		memcpy(&scope, scope, PTRSIZE);
+		scope = cast_stack<ptrs_scope>scope;
+
+		ptrs_error(scope.callAst, scope.callScope, msg);
+	}
+}
