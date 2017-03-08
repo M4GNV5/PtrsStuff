@@ -1,35 +1,29 @@
-import pthread_mutex_init as mutex_init,
-	pthread_mutex_lock as mutex_lock,
-	pthread_mutex_unlock as mutex_unlock,
-	pthread_mutex_destroy as mutex_destroy,
-	pthread_self from "libpthread.so.0";
-
-const MUTEX_SIZE = 64; //actually 40 but meh
+import pthread_* from "libpthread.so.0";
 
 struct MutexWrap
 {
 	private wrap;
 	private allowAddress;
-	mutex{MUTEX_SIZE};
+	mutex{64};
 
 	constructor(obj, allowAddr = false)
 	{
 		wrap = obj;
 		allowAddress = allowAddr;
-		mutex_init(mutex, NULL);
+		pthread_mutex_init(mutex, NULL);
 	}
 	destructor()
 	{
-		mutex_destroy(mutex);
+		pthread_mutex_destroy(mutex);
 	}
 
 	lock()
 	{
-		mutex_lock(mutex);
+		pthread_mutex_lock(mutex);
 	}
 	unlock()
 	{
-		mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 	}
 
 	operator this.key
@@ -38,9 +32,9 @@ struct MutexWrap
 	}
 	operator this[key]
 	{
-		mutex_lock(mutex);
+		pthread_mutex_lock(mutex);
 		var val = wrap[key];
-		mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 		return val;
 	}
 
@@ -50,9 +44,9 @@ struct MutexWrap
 	}
 	operator this[key] = val
 	{
-		mutex_lock(mutex);
+		pthread_mutex_lock(mutex);
 		wrap[key] = val;
-		mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 	}
 
 	operator &this.key
@@ -64,9 +58,9 @@ struct MutexWrap
 		if(!allowAddress)
 			throw "Cannot get the address of property '$key' of a mutex-wrapped object";
 
-		mutex_lock(mutex);
+		pthread_mutex_lock(mutex);
 		var ptr = &wrap[key];
-		mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 		return ptr;
 	}
 
@@ -76,9 +70,9 @@ struct MutexWrap
 	}
 	operator this[key](args...)
 	{
-		mutex_lock(mutex);
+		pthread_mutex_lock(mutex);
 		var val = wrap[key](...args);
-		mutex_unlock(mutex);
+		pthread_mutex_unlock(mutex);
 		return val;
 	}
 };
