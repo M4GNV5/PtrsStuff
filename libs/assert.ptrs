@@ -1,4 +1,4 @@
-import memcpy, ptrs_error;
+import ptrs_error;
 
 struct ptrs_scope
 {
@@ -17,9 +17,8 @@ function assert(val = true, lazy msg = "Assertion failed")
 {
 	if(!val)
 	{
-		import ptrs_lastscope as scope;
-		memcpy(&scope, scope, PTRSIZE);
-		scope = cast_stack<ptrs_scope>scope;
+		import ptrs_lastscope : native;
+		var scope = cast_stack<ptrs_scope>ptrs_lastscope;
 
 		ptrs_error(scope.callAst, scope.callScope, msg);
 	}

@@ -1,6 +1,5 @@
-import printf, fgets, stdin, atoi, exit, memcpy, free, getpass;
+import printf, fgets, stdin : native, atoi, exit, free, getpass;
 import Rcon from "../libs/rcon.ptrs";
-memcpy(&stdin, stdin, 8);
 
 var port = atoi(arguments[1]);
 printf("connecting to %s:%d\n", arguments[0], port);

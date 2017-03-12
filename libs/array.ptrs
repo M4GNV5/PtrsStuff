@@ -1,4 +1,4 @@
-import ptrs_nativeTypes, ptrs_nativeTypeCount, strcmp, memcpy;
+import ptrs_nativeTypes, ptrs_nativeTypeCount : int, strcmp;
 
 struct StructArray
 {
@@ -82,8 +82,6 @@ struct ptrs_nativetype_info
 	setHandler : native; //ptrs_var_t *(*)(void *, size_t, ptrs_var_t *)
 	ffiType : native; //void *
 };
-memcpy(&ptrs_nativeTypeCount, ptrs_nativeTypeCount, sizeof int); //TODO this only works for LE
-ptrs_nativeTypeCount = as<int>ptrs_nativeTypeCount & 0xFFFFFFFF;
 ptrs_nativeTypes = ptrs_nativeTypes[0 .. ptrs_nativeTypeCount * sizeof ptrs_nativetype_info];
 
 struct TypedArray
