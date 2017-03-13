@@ -1,16 +1,10 @@
-import printf, fgets, stdin : native, atoi, exit, free, getpass;
+import printf, puts, fgets, stdin : native, atoi, getpass;
 import Rcon from "../libs/rcon.ptrs";
 
-var port = atoi(arguments[1]);
-printf("connecting to %s:%d\n", arguments[0], port);
+var port = atoi!int(arguments[1]);
 var pass = getpass("Password: ");
 var rcon = new Rcon(arguments[0], port, pass);
-
-if(rcon.error)
-{
-	printf("Error connecting to server: %s\n", rcon.error);
-	exit(1);
-}
+puts("connected to ${arguments[0]}:$port\n");
 
 var buff[1024];
 while(true)
@@ -19,13 +13,6 @@ while(true)
 	fgets(buff, 1024, stdin);
 
 	var resp = rcon.command(buff);
-
-	if(rcon.error)
-	{
-		printf("Rcon error: %s\n", rcon.error);
-		exit(1);
-	}
-
-	printf("< %s\n", resp);
-	free(resp);
+	puts("< $resp\n");
+	delete resp;
 }

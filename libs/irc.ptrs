@@ -1,5 +1,5 @@
 import strncmp, strchr, sprintf, strlen, printf;
-import Socket from "network.ptrs";
+import Socket from "socket.ptrs";
 
 struct IrcClient
 {
@@ -38,7 +38,9 @@ struct IrcClient
 		while(true)
 		{
 			var count = this.socket.read(buff, 512, '\n');
+			printf("%s", buff);
 			buff[count] = 0;
+
 
 			if(strncmp(buff, "PING", 4) == 0)
 			{

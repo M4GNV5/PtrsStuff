@@ -1,22 +1,31 @@
 import memcpy, memset, strlen, strdup, strcpy, free;
-import Socket, INT_MAX from "network.ptrs";
+import Socket from "socket.ptrs";
+
+struct RconPacket
+{
+	length : u32;
+	id : u32;
+	pkgType : u32;
+	//payload{this.length - 2 * sizeof(u32) - sizeof(u16)}
+	//padding : u16
+};
 
 struct Rcon
 {
 	socket;
-	nextId;
+	private nextId = 1;
+
 	constructor(ip, port, password)
 	{
-		this.nextId = 1;
-		this.socket = new Socket();
-		this.socket.connect(ip, port);
-		free(this.sendPackage(3, password));
+		nextId = 1;
+		socket = new Socket(ip, port);
+
+		var resp = this.sendPackage(3, password);
+		delete resp;
 	}
 	destructor()
 	{
-		delete this.socket;
-		this.socket.disconnect();
-		free(this.socket);
+		delete socket;
 	}
 
 	command(cmd)
@@ -25,32 +34,27 @@ struct Rcon
 	}
 	sendPackage(pkgType, payload)
 	{
-		var len = strlen(payload) + 10;
-		var fullLen = len + 4;
-		var buff[fullLen];
-		buff = as<native>buff;
+		if(typeof payload != type<native>)
+			payload = cast<string>payload;
 
-		memcpy(buff, &len, 4);
-		memcpy(buff + 4, &(this.nextId), 4);
-		memcpy(buff + 8, &pkgType, 4);
-		strcpy(buff + 12, payload);
-		memset(buff + fullLen - 2, 0, 2);
+		var len = strlen(payload) + sizeof(RconPacket) + 3;
+		var buff{len};
 
-		this.nextId++;
-		this.socket.send(buff, fullLen);
+		var pkg = cast_stack<RconPacket>buff;
+		pkg.length = len - sizeof(u32);
+		pkg.id = nextId;
+		pkg.pkgType = pkgType;
 
-		var responseLen = 0;
-		this.socket.recv(&responseLen, 4);
+		strcpy(buff + sizeof(RconPacket), payload);
+		memset(buff + len - 2, 0, 2);
+		socket.send(buff, len);
 
-		var responseBuff{responseLen};
-		this.socket.recv(responseBuff, responseLen);
+		socket.recv(pkg, sizeof(RconPacket));
+		if(pkg.id < 0)
+			throw "Rcon error: Received id ${pkg.id}. Invalid password?";
 
-		var id = 0;
-		memcpy(&id, responseBuff, 4);
-
-		if(id < 0 || id > INT_MAX)
-			throw "Rcon error: Received id $id. Invalid password?";
-		else
-			return as<native>strdup(responseBuff + 8);
+		var respBuff = new array{pkg.length - 2 * sizeof(u32)};
+		socket.recv(respBuff, sizeof respBuff);
+		return respBuff;
 	}
 };

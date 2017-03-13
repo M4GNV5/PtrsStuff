@@ -4,7 +4,7 @@ Various scripts and libraries written in [PointerScript](https://github.com/M4GN
 
 ## Scripts
 - `ncchat.ptrs`: Chat server you can connect to using netcat
-- `rconcat.ptrs`: Rcon client for connecting to e.g. Minecraft servers
+- `rconcat.ptrs`: [Rcon](https://developer.valvesoftware.com/wiki/Source_RCON_Protocol) client
 - `test.ptrs`: small test script for map, list, json, http and mutex libraries
 - `ircbot.ptrs`: A very basic IRC Bot that can advertise himself
 - `munchkin.ptrs`: IRC bot to play Munchkin Loot Letters
@@ -170,8 +170,7 @@ function setInterval(func, interval, arg) { ... }
 function clearInterval(job) { ... }
 ```
 
-- `socket.ptrs`: `socket.ptrs` is the replacement of `network.ptrs`
-using the posix networking api directly instead of sdl_net
+- `socket.ptrs`:
 ```C
 //AF constants (see `man socket` for more information)
 //AF_UNSPEC, AF_UNIX, AF_LOCAL, AF_INET, AF_INET6, AF_IPX, AF_NETLINK, AF_X25,
