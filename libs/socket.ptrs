@@ -192,6 +192,11 @@ struct Socket
 
 	recv(recbuff, len)
 	{
+		if(typeof recbuff == type<struct>)
+			recbuff = cast<native>recbuff;
+		else
+			recbuff = as<native>recbuff;
+
 		var remaining = (buff + bufflen) - buffptr;
 		if(len > remaining)
 		{
