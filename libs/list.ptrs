@@ -136,7 +136,7 @@ struct List
 		return val;
 	}
 
-	remove(val, compare = (a, b) -> a == b)
+	remove(val, compare = (===))
 	{
 		var prev = null;
 		var curr = this.first;
@@ -222,7 +222,7 @@ struct List
 			prev.next = curr;
 	}
 
-	indexOf(value, start = 0, compare = (a, b) -> a == b)
+	indexOf(value, start = 0, compare = (===))
 	{
 		var curr = this.getEntry(start);
 		for(var i = 0; curr != null; i++)
@@ -233,7 +233,7 @@ struct List
 		}
 		return -1;
 	}
-	lastIndexOf(value, end, compare = (a, b) -> a == b)
+	lastIndexOf(value, end, compare = (===))
 	{
 		var last = -1;
 		var curr = this.first;
@@ -296,7 +296,7 @@ struct List
 		}
 	}
 
-	sort(buff, max, compare = (a, b) -> a - b)
+	sort(buff, max, compare = (-))
 	{
 		var proxyCompare = (a, b) -> compare(*as<pointer>a, *as<pointer>b);
 		buff = this.toArray(buff, max);

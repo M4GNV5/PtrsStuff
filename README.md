@@ -50,12 +50,12 @@ struct List
 
 	add(values...); //add values to the list
 	removeAt(index); //removes value at 'index' and returns it
-	remove(value, compare = (a, b) -> a == b); //removes the first occurence of 'value' from the list
+	remove(value, compare = (a, b) -> a === b); //removes the first occurence of 'value' from the list
 	splice(index, removeCount, insert...); //remove and/or add multiple values
 	reverse(); //reverses the list
 
-	indexOf(value, start = 0, compare = (a, b) -> a == b); //get the first index of a value using a compare function
-	lastIndexOf(value, start = 0, compare = (a, b) -> a == b); //get the last index of a value using a compare function
+	indexOf(value, start = 0, compare = (a, b) -> a === b); //get the first index of a value using a compare function
+	lastIndexOf(value, start = 0, compare = (a, b) -> a === b); //get the last index of a value using a compare function
 
 	find(check = (val, data) -> true, data = null) //call check on every value, returning the first one it returns true on
 	filter(check = (val, data) -> true, data = null) //call check on every value, only keeping values it returns true
