@@ -57,9 +57,8 @@ struct List
 	indexOf(value, start = 0, compare = (a, b) -> a === b); //get the first index of a value using a compare function
 	lastIndexOf(value, start = 0, compare = (a, b) -> a === b); //get the last index of a value using a compare function
 
-	find(check = (val, data) -> true, data = null) //call check on every value, returning the first one it returns true on
-	filter(check = (val, data) -> true, data = null) //call check on every value, only keeping values it returns true
-	each(modify = (val, data) -> val, data = null) //overwrite all values with modify(value)
+	//sorts 'toArray(buff, max)' using qsort. returns the array
+	sort(buff, max, compare = (a, b) -> a - b);
 
 	//create a new List from an array
 	static fromArray(buff, length = sizeof buff);

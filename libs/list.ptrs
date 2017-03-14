@@ -248,54 +248,6 @@ struct List
 		return last;
 	}
 
-	find(check = (val, data) -> true, data = null)
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			if(check(curr.value, data))
-				return curr.value;
-
-			curr = curr.next;
-		}
-	}
-
-	filter(check = (val, data) -> true, data = null)
-	{
-		var prev = null;
-		var curr = this.first;
-
-		while(curr != null)
-		{
-			if(check(curr.value, data))
-			{
-				prev = curr;
-				curr = curr.next;
-			}
-			else
-			{
-				if(prev == null)
-					this.first = curr.next;
-				else
-					prev.next = curr.next;
-
-				var _curr = curr;
-				curr = curr.next;
-				delete _curr;
-			}
-		}
-	}
-
-	each(modify = (val, data) -> val, data = null)
-	{
-		var curr = this.first;
-		while(curr != null)
-		{
-			curr.value = modify(curr.value, data);
-			curr = curr.next;
-		}
-	}
-
 	sort(buff, max, compare = (-))
 	{
 		var proxyCompare = (a, b) -> compare(*as<pointer>a, *as<pointer>b);
