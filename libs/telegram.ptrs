@@ -134,20 +134,12 @@ struct Telegram
 	{
 		var url = "https://api.telegram.org/bot$token/$path";
 		var resp;
-		if(data)
-		{
-			if(typeof data != type<native>)
-				data = json_encode(data);
 
-			var reqHeader = map_stack {
-				"Content-Type": "application/json"
-			};
-			resp = HTTP.POST(url, data, reqHeader);
-		}
-		else
-		{
-			resp = HTTP.GET(url);
-		}
+		data = json_encode(data);
+		resp = HTTP.POST(url, data, map_stack {
+			"Content-Type": "application/json"
+		});
+		json_destroy(data);
 
 		var data = undefined;
 		try
@@ -167,10 +159,11 @@ struct Telegram
 
 	getUpdate()
 	{
+		var allowed_updates = new_stack array[] ["message", "callback_query"];
 		var req = map_stack {
 			limit: 1,
 			timeout: 0x7FFFFFFF,
-			allowed_updates: new_stack array[] ["message", "callback_query"],
+			allowed_updates: allowed_updates,
 			offset: offset
 		};
 
@@ -207,11 +200,12 @@ struct Telegram
 		}
 	}
 
-	sendMessage(chat, msg, markup)
+	sendMessage(chat, msg, mode, markup)
 	{
 		var req = map_stack {
 			chat_id: chat,
 			text: msg,
+			parse_mode: mode,
 			reply_markup: markup
 		};
 
@@ -221,12 +215,13 @@ struct Telegram
 		return id;
 	}
 
-	editMessage(chat, id, text, markup)
+	editMessage(chat, id, text, mode, markup)
 	{
 		var req = map_stack {
 			chat_id: chat,
 			message_id: id,
 			text: text,
+			parse_mode: mode,
 			reply_markup: markup
 		};
 
