@@ -136,7 +136,7 @@ struct Map
 
 	operator key in this
 	{
-		return !!getEntry(key);
+		return !!getEntry(key, _, false);
 	}
 	operator sizeof this
 	{
