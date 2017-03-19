@@ -172,12 +172,12 @@ function json_encode(val, cb)
 
 		for(var i = 0; i < count; i++)
 		{
-			if(keyStrings[i] == NULL)
-				continue;
-
-			buffptr += sprintf(buffptr, "%s:%s,", keyStrings[i], valueStrings[i]);
-			free(keyStrings[i]);
-			free(valueStrings[i]);
+			if(keyStrings[i] != NULL)
+			{
+				buffptr += sprintf(buffptr, "%s:%s,", keyStrings[i], valueStrings[i]);
+				delete keyStrings[i];
+				delete valueStrings[i];
+			}
 		}
 
 		*buffptr-- = 0;
