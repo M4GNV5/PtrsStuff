@@ -2,7 +2,7 @@ import HTTP from "./curl.ptrs";
 import List from "./list.ptrs";
 import Map from "./map.ptrs";
 import json_encode, json_decode, json_destroy from "./json.ptrs";
-import strdup, free;
+import strcpy, free;
 
 struct MessageUpdate
 {
@@ -24,18 +24,25 @@ struct MessageUpdate
 			time = 0;
 
 		senderId = data.from.id;
-		sender = strdup!native(data.from.first_name);
+
+        sender = new array{sizeof data.from.first_name};
+        strcpy(sender, data.from.first_name);
 
 		if("text" in data)
-			text = strdup!native(data.text);
+        {
+            text = new array{sizeof data.text};
+            strcpy(text, data.text);
+        }
 		else
-			text = NULL;
+        {
+            text = NULL;
+        }
 	}
 	destructor()
 	{
-		free(sender);
+        delete sender;
 		if(text != NULL)
-			free(text);
+			delete text;
 	}
 };
 
@@ -51,21 +58,23 @@ struct CallbackQuery
 
 	constructor(data, _bot)
 	{
-		id = strdup!native(data.id);
-		senderId = data.from.id;
-		sender = strdup!native(data.from.first_name);
+		id = new array{sizeof data.id};
+        strcpy(id, data.id);
+		sender = new array{sizeof data.from.first_name};
+        strcpy(sender, data.from.first_name);
+		action = new array{data.data};
+        strcpy(action, data.data);
 
-		message = new MessageUpdate(data.message);
-		action = strdup!native(data.data);
-
+        senderId = data.from.id;
+        message = new MessageUpdate(data.message);
 		bot = _bot;
 	}
 	destructor()
 	{
 		delete message;
-		free(id);
-		free(sender);
-		free(action);
+        delete id;
+        delete sender;
+        delete action;
 	}
 
 	answer(text, alert = false)
