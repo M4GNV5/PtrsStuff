@@ -224,6 +224,9 @@ struct List
 
 	indexOf(value, start = 0, compare = (a, b) -> a === b)
 	{
+		if(_length == 0)
+			return -1;
+
 		var curr = this.getEntry(start);
 		for(var i = 0; curr != null; i++)
 		{
