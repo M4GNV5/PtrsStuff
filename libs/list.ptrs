@@ -199,8 +199,12 @@ struct List
 
 	splice(index, deleteCount, insert...)
 	{
-		var prev;
-		var curr = this.getEntry(index, &prev);
+		var prev = null;
+		var curr;
+		if(_length == 0)
+			curr = null;
+		else
+			curr = this.getEntry(index, &prev);
 
 		for(var i = 0; i < deleteCount; i++)
 		{
