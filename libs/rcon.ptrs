@@ -3,9 +3,9 @@ import Socket from "socket.ptrs";
 
 struct RconPacket
 {
-	length : u32;
-	id : u32;
-	pkgType : u32;
+	length : i32;
+	id : i32;
+	pkgType : i32;
 	//payload{this.length - 2 * sizeof(u32) - sizeof(u16)}
 	//padding : u16
 };
@@ -37,19 +37,19 @@ struct Rcon
 		if(typeof payload != type<native>)
 			payload = cast<string>payload;
 
-		var len = strlen(payload) + sizeof(RconPacket) + 3;
+		var len = strlen(payload) + 15;
 		var buff{len};
 
 		var pkg = cast_stack<RconPacket>buff;
-		pkg.length = len - sizeof(u32);
+		pkg.length = len - sizeof(i32);
 		pkg.id = nextId;
 		pkg.pkgType = pkgType;
 
-		strcpy(buff + sizeof(RconPacket), payload);
+		strcpy(buff + 12, payload);
 		memset(buff + len - 2, 0, 2);
 		socket.send(buff, len);
 
-		socket.recv(pkg, sizeof(RconPacket));
+		socket.recv(pkg, 12);
 		if(pkg.id < 0)
 			throw "Rcon error: Received id ${pkg.id}. Invalid password?";
 

@@ -116,7 +116,7 @@ struct Socket
 	private _closed = false;
 
 	buff{1024};
-	bufflen = -1;
+	bufflen = 0;
 	buffptr = NULL;
 
 	userdata = undefined;
@@ -136,12 +136,12 @@ struct Socket
 			port = cast<string>port;
 
 		sockfd = createSocket(connect, host, port, socktype, family, 0);
-		if(sockfd == null)
+		if(sockfd === null)
 			throw "Failed to connect to $host:$port";
 	}
 	destructor()
 	{
-		if(sockfd != null)
+		if(sockfd !== null)
 			close(sockfd);
 	}
 

@@ -31,16 +31,17 @@ function json_encode(val, cb)
 
 	if(typeof val == type<undefined>)
 	{
-		return strdup!native("null");
+		return strdup!native("null")[0 .. 5];
 	}
 	else if(typeof val == type<int> || typeof val == type<float>)
 	{
-		return strdup!native(cast<string>val);
+		val = cast<string>val;
+		return strdup!native(val)[0 .. sizeof val];
 	}
 	else if(typeof val == type<native>)
 	{
 		if(val == NULL)
-			return strdup!native("null");
+			return strdup!native("null")[0 .. 5];
 
 		var len = strlen(val);
 		val = val[0 .. len];
@@ -106,7 +107,7 @@ function json_encode(val, cb)
 
 		*buffptr++ = '"';
 		*buffptr = 0;
-		return as<native>strdup(buff);
+		return buff;
 	}
 	else if(val instanceof List)
 	{
@@ -117,7 +118,7 @@ function json_encode(val, cb)
 	else if(typeof val == type<pointer> && sizeof val > 0)
 	{
 		if(val == null)
-			return strdup!native("null");
+			return strdup!native("null")[0 .. 5];
 
 		var len = 2;
 		var strings[sizeof val];
