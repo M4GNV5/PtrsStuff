@@ -161,7 +161,7 @@ function setTimeout(func, timeout, arg) { ... }
 //deletes the timeout 'job' (a value returned by 'setTimeout')
 function clearTimeout(job) { ... }
 
-//executes 'func(arg)' every 'intercal' milliseconds
+//executes 'func(arg)' every 'interval' milliseconds
 //returns a 'job' that can be used with clearInterval
 function setInterval(func, interval, arg) { ... }
 
