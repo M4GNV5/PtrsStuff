@@ -1,0 +1,100 @@
+struct ArrayList
+{
+	private arraylen; //length of arrays
+	private first = null; //first array (the first element points to the next array)
+	private _length = 0;
+
+	get length
+	{
+		return _length;
+	}
+
+	constructor(_arraylen = 127)
+	{
+		arraylen = _arraylen;
+	}
+
+	private getEntry(index)
+	{
+		index = cast<int>index;
+		if(index < 0 || index > _length)
+			throw "Index $index is not in an array-list of length $_length";
+
+		var arrayIndex = index / arraylen;
+		var offset = index % arraylen;
+		var curr = first;
+
+		while(arrayIndex-- > 0)
+			curr = curr[0];
+
+		return curr + offset + 1;
+	}
+
+	operator this[index]
+	{
+		return *getEntry(index);
+	}
+	operator &this[index]
+	{
+		return getEntry(index);
+	}
+	operator this[index](args...)
+	{
+		return (*getEntry(index))(...args);
+	}
+
+	operator this[index] = value
+	{
+		index = cast<int>index;
+
+		if(index < 0 || index > _length)
+			throw "Cannot set index $index of an array-list of length $_length";
+		else if(index == _length)
+			this.add(value);
+		else
+			*getEntry(index) = value;
+	}
+
+	operator foreach in this
+	{
+		var curr = first;
+		for(var i = 0; i < _length; i++)
+		{
+			var offset = i % arraylen;
+			if(yield i, curr[offset + 1])
+				return;
+
+			if(offset == arraylen - 1)
+				curr = curr[0];
+		}
+	}
+
+	add(values...)
+	{
+		var curr = first;
+		if(curr != null)
+		{
+			while(curr[0])
+				curr = curr[0];
+		}
+
+		foreach(_, val in values)
+		{
+			var offset = _length % arraylen;
+			if(offset == 0)
+			{
+				var arr = new array[arraylen + 1];
+				arr[0] = null;
+
+				if(curr == null)
+					first = arr;
+				else
+					curr[0] = arr;
+				curr = arr;
+			}
+
+			curr[offset + 1] = val;
+			_length++;
+		}
+	}
+};
