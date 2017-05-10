@@ -20,14 +20,14 @@ struct ArrayList
 		if(index < 0 || index > _length)
 			throw "Index $index is not in an array-list of length $_length";
 
-		var arrayIndex = index / arraylen;
-		var offset = index % arraylen;
 		var curr = first;
-
-		while(arrayIndex-- > 0)
+		while(index > sizeof curr)
+		{
+			index -= sizeof curr - 1;
 			curr = curr[0];
+		}
 
-		return curr + offset + 1;
+		return curr + index + 1;
 	}
 
 	operator this[index]
@@ -58,30 +58,44 @@ struct ArrayList
 	operator foreach in this
 	{
 		var curr = first;
-		for(var i = 0; i < _length; i++)
+		var i = 0;
+		while(true)
 		{
-			var offset = i % arraylen;
-			if(yield i, curr[offset + 1])
-				return;
+			for(var j = 1; j < sizeof curr; j++ && i++)
+			{
+				if(yield i, curr[j])
+					return;
+			}
 
-			if(offset == arraylen - 1)
-				curr = curr[0];
+			if(i >= _length)
+				break;
+			curr = curr[0];
 		}
 	}
 
 	add(values...)
 	{
+		var prev = &first;
 		var curr = first;
 		if(curr != null)
 		{
 			while(curr[0])
+			{
+				prev = curr;
 				curr = curr[0];
+			}
+		}
+		else if(sizeof values > 0)
+		{
+			curr = new array[arraylen + 1];
+			curr[0] = null;
+			curr = curr[0 .. 1];
 		}
 
 		foreach(_, val in values)
 		{
-			var offset = _length % arraylen;
-			if(offset == 0)
+			var index = sizeof curr;
+			if(index == arraylen + 1)
 			{
 				var arr = new array[arraylen + 1];
 				arr[0] = null;
@@ -90,10 +104,14 @@ struct ArrayList
 					first = arr;
 				else
 					curr[0] = arr;
-				curr = arr;
+
+				prev = curr;
+				curr = arr[0 .. 1];
+				index = 1;
 			}
 
-			curr[offset + 1] = val;
+			curr = (prev[0] = curr[0 .. sizeof curr + 1]);
+			curr[index] = val;
 			_length++;
 		}
 	}
