@@ -1,3 +1,5 @@
+import memcpy;
+
 struct ArrayList
 {
 	private arraylen; //length of arrays
@@ -14,18 +16,25 @@ struct ArrayList
 		arraylen = _arraylen;
 	}
 
-	private getEntry(index)
+	private getEntry(index, prev = null)
 	{
 		index = cast<int>index;
 		if(index < 0 || index > _length)
 			throw "Index $index is not in an array-list of length $_length";
 
+		var _prev = &first;
 		var curr = first;
+		import puts; puts("y $curr $index $_length");
 		while(index > sizeof curr)
 		{
 			index -= sizeof curr - 1;
+			_prev = curr;
 			curr = curr[0];
+			import puts; puts("x $curr $index");
 		}
+
+		if(prev != null)
+			*prev = _prev;
 
 		return curr + index + 1;
 	}
@@ -100,19 +109,30 @@ struct ArrayList
 				var arr = new array[arraylen + 1];
 				arr[0] = null;
 
-				if(curr == null)
-					first = arr;
-				else
-					curr[0] = arr;
-
+				curr[0] = arr;
 				prev = curr;
+
 				curr = arr[0 .. 1];
 				index = 1;
 			}
 
-			curr = (prev[0] = curr[0 .. sizeof curr + 1]);
+			curr = curr[0 .. $ + 1];
+			prev[0] = curr;
+
 			curr[index] = val;
 			_length++;
 		}
+	}
+
+	splice(index, removeCount)
+	{
+		var prev;
+		var ptr = getEntry(index, &prev);
+		var curr = prev[0];
+
+		memcpy(ptr, ptr + removeCount, (curr + sizeof curr) - ptr);
+		prev[0] = curr[0 .. $ - removeCount];
+		import puts; puts("splice $_length $removeCount");
+		_length -= removeCount;
 	}
 };
