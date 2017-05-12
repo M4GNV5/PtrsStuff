@@ -124,12 +124,46 @@ struct ArrayList
 
 	splice(index, removeCount)
 	{
+		index = cast<int>index;
+		if(index + removeCount >= _length)
+			throw "Cannot remove $removeCount entries at index $index from an array-list of size $_length";
+
 		var prev;
 		var ptr = getEntry(index, &prev);
 		var curr = prev[0];
 
-		memcpy(ptr, ptr + removeCount, (curr + sizeof curr) - ptr);
-		prev[0] = curr[0 .. $ - removeCount];
 		_length -= removeCount;
+		while(removeCount > 0)
+		{
+			if(ptr == &curr[1] && removeCount >= sizeof curr - 1)
+			{
+				prev[0] = curr[0];
+				var old = curr;
+				removeCount -= sizeof curr - 1;
+
+				curr = curr[0];
+				if(curr != null)
+					ptr = &curr[1];
+
+				delete old;
+			}
+			else if(ptr + removeCount >= curr + sizeof curr)
+			{
+				var count = curr + sizeof curr - ptr - 1;
+				prev[0] = curr[0 .. $ - count];
+				removeCount -= count;
+
+				prev = curr;
+				curr = curr[0];
+				ptr = &curr[1];
+			}
+			else
+			{
+				var start = ptr + removeCount;
+				memcpy(ptr, start, (curr + sizeof curr - start) * sizeof var);
+				prev[0] = curr[0 .. $ - removeCount];
+				break;
+			}
+		}
 	}
 };
