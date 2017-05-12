@@ -24,13 +24,11 @@ struct ArrayList
 
 		var _prev = &first;
 		var curr = first;
-		import puts; puts("y $curr $index $_length");
 		while(index > sizeof curr)
 		{
 			index -= sizeof curr - 1;
 			_prev = curr;
 			curr = curr[0];
-			import puts; puts("x $curr $index");
 		}
 
 		if(prev != null)
@@ -132,7 +130,6 @@ struct ArrayList
 
 		memcpy(ptr, ptr + removeCount, (curr + sizeof curr) - ptr);
 		prev[0] = curr[0 .. $ - removeCount];
-		import puts; puts("splice $_length $removeCount");
 		_length -= removeCount;
 	}
 };
