@@ -62,6 +62,16 @@ struct ArrayList
 			*getEntry(index) = value;
 	}
 
+	operator index in this
+	{
+		index = cast<int>index;
+		return index > 0 && index < _length;
+	}
+	operator sizeof this
+	{
+		return _length;
+	}
+
 	operator foreach in this
 	{
 		var curr = first;
