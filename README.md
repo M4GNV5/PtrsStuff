@@ -105,6 +105,28 @@ struct TypedArray
 };
 ```
 
+- `arraylist.ptrs`
+```C
+struct ArrayList
+{
+	get length; //retrieve current length
+
+	constructor(arraylen = 127); //arraylen specifies the length of single arrays - 1
+
+	operator this[index]; //get the value at 'index'
+	operator this[index] = value; //set the value at 'index' to 'value'
+	operator &this[index]; //get the pointer to the value at 'index'
+	operator this[index](args...); //get the value at 'index' and call it with 'args'
+
+	operator index in this; //same as 'index >= 0 && index < length'
+	operator sizeof this; //same as 'get length'
+	operator foreach in this; //iterate over the list (yields index, value)
+
+	add(values...); //add values to the list
+	splice(index, removeCount); //remove 'removeCount' values at 'index'
+}
+```
+
 - `curl.ptrs`:
 ```C
 struct HTTP
