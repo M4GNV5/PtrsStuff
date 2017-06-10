@@ -106,7 +106,7 @@ function getSocketIp(getname, sockfd, buff)
 	if(addr.family != AF_INET && addr.family != AF_INET6)
 		throw "get*Address can only be called on sockets using AF_INET or AF_INET6";
 
-	if(inet_ntop(addr.family, addr.data, buff, len) == NULL)
+	if(inet_ntop!native(addr.family, addr.data, buff, sizeof buff) == NULL)
 		throw "Failed to convert address";
 }
 
