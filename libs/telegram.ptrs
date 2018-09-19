@@ -183,7 +183,7 @@ struct Telegram
 
 			if(res.result.length == 0)
 			{
-				delete res;
+				json_destroy(res);
 				continue;
 			}
 
@@ -193,18 +193,18 @@ struct Telegram
 			if("message" in update && "text" in update.message)
 			{
 				var ret = new MessageUpdate(update.message);
-				delete res;
+				json_destroy(res);
 				return ret;
 			}
 			else if("callback_query" in update)
 			{
 				var ret = new CallbackQuery(update.callback_query, this);
-				delete res;
+				json_destroy(res);
 				return ret;
 			}
 			else
 			{
-				delete res;
+				json_destroy(res);
 			}
 		}
 	}
