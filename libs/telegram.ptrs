@@ -13,7 +13,9 @@ struct MessageUpdate
 	sender;
 	text;
 
-	constructor(data)
+	private bot;
+
+	constructor(data, _bot)
 	{
 		id = data.message_id;
 		chat = data.chat.id;
@@ -37,12 +39,19 @@ struct MessageUpdate
         {
             text = NULL;
         }
+
+		bot = _bot;
 	}
 	destructor()
 	{
         delete sender;
 		if(text != NULL)
 			delete text;
+	}
+
+	reply(msg, mode, markup)
+	{
+		bot.sendMessage(chat, msg, mode, markup, id);
 	}
 };
 
@@ -66,7 +75,7 @@ struct CallbackQuery
         strcpy(action, data.data);
 
         senderId = data.from.id;
-        message = new MessageUpdate(data.message);
+        message = new MessageUpdate(data.message, _bot);
 		bot = _bot;
 	}
 	destructor()
@@ -155,7 +164,7 @@ struct Telegram
 		{
 			data = json_decode(resp.body);
 
-			if(!data.ok)
+			if(!("ok" in data) || !data.ok)
 				throw data.description;
 		}
 		finally
@@ -192,7 +201,7 @@ struct Telegram
 
 			if("message" in update && "text" in update.message)
 			{
-				var ret = new MessageUpdate(update.message);
+				var ret = new MessageUpdate(update.message, this);
 				json_destroy(res);
 				return ret;
 			}
@@ -209,12 +218,13 @@ struct Telegram
 		}
 	}
 
-	sendMessage(chat, msg, mode, markup)
+	sendMessage(chat, msg, mode, markup, replyTo)
 	{
 		var req = map_stack {
 			chat_id: chat,
 			text: msg,
 			parse_mode: mode,
+			reply_to_message_id: replyTo,
 			reply_markup: markup
 		};
 
