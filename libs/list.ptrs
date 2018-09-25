@@ -201,7 +201,9 @@ struct List
 	{
 		var prev = null;
 		var curr;
-		if(_length == 0)
+		if(_length - index < deleteCount)
+			throw "Cannot delete $deleteCount items at index $index from a list of length $_length";
+		else if(_length == 0)
 			curr = null;
 		else
 			curr = this.getEntry(index, &prev);
@@ -224,6 +226,9 @@ struct List
 			this.first = curr;
 		else
 			prev.next = curr;
+
+		if(this.first == null)
+			this.last = null;
 	}
 
 	indexOf(value, start = 0, compare = (a, b) -> a === b)
