@@ -57,6 +57,7 @@ struct MessageUpdate
 
 struct CallbackQuery
 {
+	chat;
 	id;
 	senderId;
 	sender;
@@ -71,7 +72,7 @@ struct CallbackQuery
         strcpy(id, data.id);
 		sender = new array{sizeof data.from.first_name};
         strcpy(sender, data.from.first_name);
-		action = new array{data.data};
+		action = new array{sizeof data.data};
         strcpy(action, data.data);
 
         senderId = data.from.id;
@@ -116,6 +117,8 @@ struct InlineKeyboard
 		{
 			foreach(j, elem in row)
 			{
+				delete elem.text;
+				delete elem.callback_data;
 				delete elem;
 			}
 			delete row;
@@ -131,9 +134,17 @@ struct InlineKeyboard
 
 	addButton(row = 0, text, action = text)
 	{
+		text = cast<string>text;
+		action = cast<string>action;
+
+		var _text = new array{sizeof text};
+		strcpy(_text, text);
+		var _action = new array{sizeof action};
+		strcpy(_action, action);
+
 		var elem = map {
-			text: text,
-			callback_data: action
+			text: _text,
+			callback_data: _action
 		};
 		inline_keyboard[row].add(elem);
 	}
