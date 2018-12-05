@@ -24,13 +24,13 @@ function dataWriter(buff, size, count, data)
 	data = *as<pointer>data;
 	buff = (as<native>buff)[0 .. buffLen];
 
-	if(sizeof data.body - data.bodyIndex < sizeof buff - 1)
+	if(sizeof data.body - data.bodyIndex < sizeof buff + 1)
 	{
 		var len = sizeof data.body;
 		if(len == 0)
 			len = 1024;
 
-		while(len < sizeof(data.body) + sizeof(buff) - 1)
+		while(len - data.bodyIndex < sizeof(buff) + 1)
 			len *= 2;
 
 		data.body = realloc!native(data.body, len)[0 .. len];
