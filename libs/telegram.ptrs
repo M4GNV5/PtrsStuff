@@ -51,7 +51,7 @@ struct MessageUpdate
 
 	reply(msg, mode, markup)
 	{
-		bot.sendMessage(chat, msg, mode, markup, id);
+		return bot.sendMessage(chat, msg, mode, markup, id);
 	}
 };
 
@@ -259,5 +259,16 @@ struct Telegram
 		var id = res.result.message_id;
 		json_destroy(res);
 		return id;
+	}
+
+	deleteMessage(chat, id)
+	{
+		var req = map_stack {
+			chat_id: chat,
+			message_id: id
+		};
+
+		var res = makeRequest("deleteMessage", req);
+		json_destroy(res);
 	}
 };
